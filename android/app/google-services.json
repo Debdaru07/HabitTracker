@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "32802851484",
+    "project_id": "habittracker-240f4",
+    "storage_bucket": "habittracker-240f4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:32802851484:android:d9fe81a820152335557b59",
+        "android_client_info": {
+          "package_name": "com.healthygrow.habittracker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "32802851484-h1j8q01fmjppferqseu2nm5oulkapj29.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4mpmdCDRdjYvPiHJc_9Aqs7QnMrTNeHw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "32802851484-h1j8q01fmjppferqseu2nm5oulkapj29.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
