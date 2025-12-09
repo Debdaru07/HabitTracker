@@ -11,32 +11,35 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SignInWithGoogleRequested>(_onGoogleSignIn);
     on<SignOutRequested>(_onSignOut);
 
-    // Listen to Firebase user stream
-    authService.userStream.listen((user) {
+    authService.userStream.listen((_) {
       add(AuthCheckRequested());
     });
   }
 
-  Future<void> _onAuthCheck(
-    AuthCheckRequested event,
-    Emitter<AuthState> emit,
-  ) async {
-    emit(state.copyWith(user: authService.currentUser, isLoading: false));
+  void _onAuthCheck(AuthCheckRequested event, Emitter<AuthState> emit) {
+    emit(
+      state.copyWith(
+        user: authService.currentUser,
+        isLoading: false,
+        error: null,
+      ),
+    );
   }
 
   Future<void> _onGoogleSignIn(
     SignInWithGoogleRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(state.copyWith(isLoading: true));
+    emit(state.copyWith(isLoading: true, error: null));
 
     final result = await authService.signInWithGoogle();
 
     if (result.error != null) {
       emit(state.copyWith(isLoading: false, error: result.error));
-    } else {
-      emit(state.copyWith(isLoading: false, user: result.user));
+      return;
     }
+
+    emit(state.copyWith(isLoading: false, user: result.user));
   }
 
   Future<void> _onSignOut(
