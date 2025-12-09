@@ -21,7 +21,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.habitsgrow.app"
+        applicationId = "com.healthygrow.habittracker"
         minSdk = 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
