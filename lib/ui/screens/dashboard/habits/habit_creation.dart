@@ -320,7 +320,7 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
                                 decoration: BoxDecoration(
                                   color:
                                       frequencyDaily
-                                          ? AppColors.primary
+                                          ? AppColors.backgroundLight
                                           : Colors.transparent,
                                   borderRadius: BorderRadius.circular(28),
                                 ),
@@ -335,7 +335,7 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
                                             : FontWeight.w600,
                                     color:
                                         frequencyDaily
-                                            ? Colors.white
+                                            ? AppColors.primary
                                             : AppColors.textPrimary,
                                   ),
                                 ),
@@ -355,7 +355,7 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
                                 decoration: BoxDecoration(
                                   color:
                                       !frequencyDaily
-                                          ? AppColors.primary
+                                          ? AppColors.backgroundLight
                                           : Colors.transparent,
                                   borderRadius: BorderRadius.circular(28),
                                 ),
@@ -370,7 +370,7 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
                                             : FontWeight.w600,
                                     color:
                                         !frequencyDaily
-                                            ? Colors.white
+                                            ? AppColors.primary
                                             : AppColors.textPrimary,
                                   ),
                                 ),
