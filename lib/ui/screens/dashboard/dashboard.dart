@@ -305,7 +305,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required TextTheme textTheme,
   }) {
     return InkWell(
-      onTap: () => Navigator.pushNamed(context, AppRoutes.createHabit),
+      onTap: () => Navigator.pushNamed(context, AppRoutes.habitDetails),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         padding: const EdgeInsets.all(16),
