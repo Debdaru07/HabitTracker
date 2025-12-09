@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 class Space {
+  static const h4 = SizedBox(height: 4);
   static const h8 = SizedBox(height: 8);
   static const h12 = SizedBox(height: 12);
   static const h16 = SizedBox(height: 16);

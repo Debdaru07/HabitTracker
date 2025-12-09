@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/spacing.dart';
+import '../../../widgets/habit_day_chip.dart';
+import '../../../widgets/habit_rounded_card.dart';
 
 class CreateHabitScreen extends StatefulWidget {
   const CreateHabitScreen({super.key});
@@ -12,27 +14,21 @@ class CreateHabitScreen extends StatefulWidget {
 }
 
 class _CreateHabitScreenState extends State<CreateHabitScreen> {
-  // Icon selection (use IconData from Material as placeholder icons)
-  IconData selectedIcon = Icons.spa; // potted_plant equivalent
+  IconData selectedIcon = Icons.spa;
   Color selectedIconBg = const Color(0xFFEAF0EA);
 
-  // Form state
   final TextEditingController nameController = TextEditingController();
-  bool frequencyDaily = true; // Daily by default (Option A)
+  bool frequencyDaily = true;
   TimeOfDay dailyTime = const TimeOfDay(hour: 9, minute: 0);
 
-  // Selective days state (only used when frequencyDaily == false)
   final List<bool> selectedWeekDays = List<bool>.filled(7, false);
   TimeOfDay selectiveTime = const TimeOfDay(hour: 9, minute: 0);
 
-  // Reminder
   bool reminderEnabled = true;
   TimeOfDay reminderTime = const TimeOfDay(hour: 9, minute: 0);
 
-  // Weekday labels
   final List<String> weekdayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
-  // Emoji / icon options for tray
   final List<IconData> iconChoices = [
     Icons.spa,
     Icons.water_drop,
@@ -53,16 +49,14 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
   }
 
   Future<TimeOfDay?> _pickTime(TimeOfDay initial) async {
-    final picked = await showTimePicker(
+    return showTimePicker(
       context: context,
       initialTime: initial,
       builder: (context, child) {
-        // Keep consistent font
         return Theme(
           data: Theme.of(context).copyWith(
             textTheme: GoogleFonts.plusJakartaSansTextTheme(),
             timePickerTheme: TimePickerThemeData(
-              // Slightly rounded buttons
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -72,7 +66,6 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
         );
       },
     );
-    return picked;
   }
 
   void _openIconTray() {
@@ -127,17 +120,17 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
                           width: 64,
                           decoration: BoxDecoration(
                             color:
-                                ic == selectedIcon
+                                isSelected
                                     ? const Color(0xFF4CAE4F).withOpacity(0.15)
                                     : Colors.white,
                             borderRadius: BorderRadius.circular(16),
-                            border:
-                                ic == selectedIcon
-                                    ? Border.all(
-                                      color: const Color(0xFF4CAE4F),
-                                      width: 2,
-                                    )
-                                    : Border.all(color: Colors.grey.shade200),
+                            border: Border.all(
+                              color:
+                                  isSelected
+                                      ? const Color(0xFF4CAE4F)
+                                      : Colors.grey.shade200,
+                              width: isSelected ? 2 : 1,
+                            ),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withOpacity(0.04),
@@ -149,7 +142,7 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
                             ic,
                             size: 28,
                             color:
-                                ic == selectedIcon
+                                isSelected
                                     ? const Color(0xFF4CAE4F)
                                     : Colors.grey[700],
                           ),
@@ -166,12 +159,9 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
   }
 
   void _toggleWeekDay(int index) {
-    setState(() {
-      selectedWeekDays[index] = !selectedWeekDays[index];
-    });
+    setState(() => selectedWeekDays[index] = !selectedWeekDays[index]);
   }
 
-  // Format helper for time
   String _formatTimeOfDay(TimeOfDay t) {
     final hour = t.hourOfPeriod == 0 ? 12 : t.hourOfPeriod;
     final minutes = t.minute.toString().padLeft(2, '0');
@@ -180,7 +170,6 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
   }
 
   void _onCreateHabit() {
-    // Build habit payload (example)
     final name = nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -190,10 +179,7 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
     }
 
     final selectedDays =
-        List<int>.generate(
-          7,
-          (i) => i,
-        ).where((i) => selectedWeekDays[i]).toList();
+        List.generate(7, (i) => i).where((i) => selectedWeekDays[i]).toList();
 
     final habitData = {
       'icon': selectedIcon.codePoint,
@@ -206,8 +192,6 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
       'reminder_time': reminderEnabled ? _formatTimeOfDay(reminderTime) : null,
     };
 
-    // For now just print - replace with your save logic
-    // e.g., call a provider or service to save to firestore/local db
     debugPrint('Habit created: $habitData');
 
     ScaffoldMessenger.of(
@@ -226,7 +210,6 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Top Appbar
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Row(
@@ -246,22 +229,17 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
                       ),
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.info_outline),
-                    onPressed: () {},
-                  ),
+                  const SizedBox(width: 48),
                 ],
               ),
             ),
 
-            // Content
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Icon (tappable)
                     Space.h8,
                     Center(
                       child: GestureDetector(
@@ -286,7 +264,6 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
 
                     Space.h20,
 
-                    // Name
                     Text(
                       'Name',
                       style: textTheme.headlineSmall?.copyWith(
@@ -297,10 +274,7 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
                     ),
                     Space.h8,
                     RoundedCard(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 0,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: TextField(
                         controller: nameController,
                         style: textTheme.bodyMedium,
@@ -316,7 +290,6 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
 
                     Space.h20,
 
-                    // Frequency Header
                     Text(
                       'Frequency',
                       style: textTheme.headlineSmall?.copyWith(
@@ -327,7 +300,6 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
                     ),
                     Space.h12,
 
-                    // Toggle (Daily / Selective Days)
                     Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
@@ -408,14 +380,14 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
 
                     Space.h12,
 
-                    // Daily: show single time row
-                    if (frequencyDaily) ...[
+                    if (frequencyDaily)
                       RoundedCard(
                         child: InkWell(
                           onTap: () async {
                             final picked = await _pickTime(dailyTime);
-                            if (picked != null)
+                            if (picked != null) {
                               setState(() => dailyTime = picked);
+                            }
                           },
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
@@ -452,9 +424,8 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
                             ),
                           ),
                         ),
-                      ),
-                    ] else ...[
-                      // Selective days tray + common time picker
+                      )
+                    else
                       RoundedCard(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
@@ -464,7 +435,6 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Row with chips
                               SingleChildScrollView(
                                 scrollDirection: Axis.horizontal,
                                 child: Row(
@@ -482,12 +452,12 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
                                 ),
                               ),
                               Space.h12,
-                              // common time
                               InkWell(
                                 onTap: () async {
                                   final picked = await _pickTime(selectiveTime);
-                                  if (picked != null)
+                                  if (picked != null) {
                                     setState(() => selectiveTime = picked);
+                                  }
                                 },
                                 child: Row(
                                   mainAxisAlignment:
@@ -523,11 +493,9 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
                           ),
                         ),
                       ),
-                    ],
 
                     Space.h20,
 
-                    // Reminder
                     Text(
                       'Reminder',
                       style: textTheme.headlineSmall?.copyWith(
@@ -537,6 +505,7 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
                       ),
                     ),
                     Space.h12,
+
                     RoundedCard(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
@@ -545,7 +514,6 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
                         ),
                         child: Column(
                           children: [
-                            // Toggle row
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -567,7 +535,6 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
 
                             const Divider(height: 12),
 
-                            // Time row (enabled only if reminderEnabled)
                             InkWell(
                               onTap:
                                   reminderEnabled
@@ -575,8 +542,9 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
                                         final picked = await _pickTime(
                                           reminderTime,
                                         );
-                                        if (picked != null)
+                                        if (picked != null) {
                                           setState(() => reminderTime = picked);
+                                        }
                                       }
                                       : null,
                               child: Row(
@@ -617,13 +585,12 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
                       ),
                     ),
 
-                    Space.h88, // allow room for sticky CTA
+                    Space.h88,
                   ],
                 ),
               ),
             ),
 
-            // CTA Button sticky area
             Container(
               padding: const EdgeInsets.all(16),
               color: AppColors.screenBg,
@@ -655,93 +622,6 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Small reusable rounded card used to keep consistent style
-class RoundedCard extends StatelessWidget {
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-
-  const RoundedCard({
-    super.key,
-    required this.child,
-    this.padding = const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(top: 8),
-      padding: padding,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8),
-        ],
-      ),
-      child: child,
-    );
-  }
-}
-
-/// Day chip used in selective days tray
-class DayChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const DayChip({
-    super.key,
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = GoogleFonts.plusJakartaSansTextTheme();
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 44,
-        width: 44,
-        decoration: BoxDecoration(
-          color: selected ? const Color(0xFF4CAE4F) : Colors.white,
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: selected ? Colors.transparent : Colors.grey.shade200,
-          ),
-          boxShadow:
-              selected
-                  ? [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.12),
-                      blurRadius: 6,
-                    ),
-                  ]
-                  : [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.02),
-                      blurRadius: 4,
-                    ),
-                  ],
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: textTheme.bodyMedium?.copyWith(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: selected ? Colors.white : const Color(0xFF111811),
-            ),
-          ),
         ),
       ),
     );

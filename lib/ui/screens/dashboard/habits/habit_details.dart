@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/spacing.dart';
 
 class HabitDetailsScreen extends StatefulWidget {
   const HabitDetailsScreen({super.key});
@@ -32,21 +34,24 @@ class _HabitDetailsScreenState extends State<HabitDetailsScreen> {
     final textTheme = GoogleFonts.plusJakartaSansTextTheme();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7F6),
+      backgroundColor: AppColors.screenBg,
       body: SafeArea(
         child: Column(
           children: [
             _buildAppBar(textTheme),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.only(bottom: 32),
+                padding: const EdgeInsets.only(bottom: 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildHabitHeader(textTheme),
+                    _buildHeader(textTheme),
+                    Space.h12,
                     _buildStatsRow(textTheme),
-                    _buildCalendarContainer(textTheme),
-                    _buildHistorySection(textTheme),
+                    Space.h12,
+                    _buildCalendar(textTheme),
+                    Space.h12,
+                    _buildHistory(textTheme),
                   ],
                 ),
               ),
@@ -57,9 +62,9 @@ class _HabitDetailsScreenState extends State<HabitDetailsScreen> {
     );
   }
 
-  // ------------------------------------------------------------
-  // TOP APPBAR
-  // ------------------------------------------------------------
+  // -------------------------------------------------------------------
+  // APP BAR
+  // -------------------------------------------------------------------
   Widget _buildAppBar(TextTheme textTheme) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -68,8 +73,8 @@ class _HabitDetailsScreenState extends State<HabitDetailsScreen> {
           IconButton(
             icon: const Icon(
               Icons.arrow_back,
+              color: AppColors.black,
               size: 24,
-              color: Color(0xFF111811),
             ),
             onPressed: () => Navigator.pop(context),
           ),
@@ -78,64 +83,57 @@ class _HabitDetailsScreenState extends State<HabitDetailsScreen> {
               "Habit Details",
               textAlign: TextAlign.center,
               style: textTheme.titleMedium?.copyWith(
+                color: AppColors.black,
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF111811),
+                fontWeight: FontWeight.w700,
               ),
             ),
-          ),
-          IconButton(
-            icon: const Icon(
-              Icons.settings,
-              size: 24,
-              color: Color(0xFF111811),
-            ),
-            onPressed: () {},
           ),
         ],
       ),
     );
   }
 
-  // ------------------------------------------------------------
-  // HEADER: HABIT ICON + NAME + SUBTITLE
-  // ------------------------------------------------------------
-  Widget _buildHabitHeader(TextTheme textTheme) {
+  // -------------------------------------------------------------------
+  // HEADER (ICON + TITLE + SUBTITLE)
+  // -------------------------------------------------------------------
+  Widget _buildHeader(TextTheme textTheme) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            height: 72,
-            width: 72,
+            height: 90,
+            width: 90,
             decoration: BoxDecoration(
-              color: const Color(0xFF4CAE4F).withOpacity(0.15),
+              color: AppColors.greenLight,
               shape: BoxShape.circle,
             ),
-            child: const Icon(
-              Icons.auto_stories,
-              color: Color(0xFF4CAE4F),
-              size: 40,
+            child: const Center(
+              child: Icon(Icons.auto_stories, color: AppColors.green, size: 44),
             ),
           ),
-          const SizedBox(width: 16),
+          Space.w16,
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   "Read Daily",
-                  style: textTheme.titleLarge?.copyWith(
+                  style: textTheme.titleMedium?.copyWith(
                     fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF111811),
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.black,
                   ),
                 ),
+                Space.h4,
                 Text(
                   "Read for 15 minutes every day",
                   style: textTheme.bodyMedium?.copyWith(
+                    color: AppColors.greyDark,
                     fontSize: 15,
-                    color: const Color(0xFF608562),
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
               ],
@@ -146,52 +144,56 @@ class _HabitDetailsScreenState extends State<HabitDetailsScreen> {
     );
   }
 
-  // ------------------------------------------------------------
-  // STATS ROW: Streak, Completion Rate, Longest Streak
-  // ------------------------------------------------------------
+  // -------------------------------------------------------------------
+  // STATS ROW — 3 CARDS
+  // -------------------------------------------------------------------
   Widget _buildStatsRow(TextTheme textTheme) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Wrap(
         spacing: 12,
         runSpacing: 12,
         children: [
-          _statsCard("Current Streak", "12 Days", Colors.green, textTheme),
-          _statsCard("Completion Rate", "90%", Colors.black87, textTheme),
-          _statsCard("Longest Streak", "25 Days", Colors.black87, textTheme),
+          _statItem("Current Streak", "12 Days", AppColors.green, textTheme),
+          _statItem("Completion Rate", "90%", AppColors.black, textTheme),
+          _statItem("Longest Streak", "25 Days", AppColors.black, textTheme),
         ],
       ),
     );
   }
 
-  Widget _statsCard(
+  Widget _statItem(
     String title,
     String value,
-    Color valueColor,
+    Color highlight,
     TextTheme textTheme,
   ) {
     return Container(
-      width: 160,
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      width: 158,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: AppColors.greyLight),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+            style: textTheme.bodyMedium?.copyWith(
+              fontSize: 14,
+              color: AppColors.black,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-          const SizedBox(height: 6),
+          Space.h8,
           Text(
             value,
             style: textTheme.titleLarge?.copyWith(
-              color: valueColor,
-              fontWeight: FontWeight.bold,
               fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: highlight,
             ),
           ),
         ],
@@ -199,123 +201,126 @@ class _HabitDetailsScreenState extends State<HabitDetailsScreen> {
     );
   }
 
-  // ------------------------------------------------------------
-  // CALENDAR GRID (Exactly as design)
-  // ------------------------------------------------------------
-  Widget _buildCalendarContainer(TextTheme textTheme) {
+  // -------------------------------------------------------------------
+  // CALENDAR SECTION
+  // -------------------------------------------------------------------
+  Widget _buildCalendar(TextTheme textTheme) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.white,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: AppColors.greyLight),
         ),
         child: Column(
-          children: [_buildCalendarHeader(textTheme), _buildCalendarGrid()],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCalendarHeader(TextTheme textTheme) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.chevron_left, size: 22),
-          ),
-          Expanded(
-            child: Text(
-              "November 2023",
-              textAlign: TextAlign.center,
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF111811),
-              ),
-            ),
-          ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.chevron_right, size: 22),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCalendarGrid() {
-    final List<String> days = ["S", "M", "T", "W", "T", "F", "S"];
-
-    return Column(
-      children: [
-        // Weekdays
-        GridView.count(
-          crossAxisCount: 7,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
           children: [
-            for (var d in days)
-              Center(
-                child: Text(
-                  d,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
-                    color: const Color(0xFF111811),
-                  ),
-                ),
-              ),
+            _calendarHeader(textTheme),
+            Space.h8,
+            _calendarWeekdays(textTheme),
+            Space.h4,
+            _calendarDays(textTheme),
           ],
         ),
+      ),
+    );
+  }
 
-        // Day Cells
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: 30,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 7,
+  Widget _calendarHeader(TextTheme textTheme) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _iconButton(Icons.chevron_left),
+        Text(
+          "November 2023",
+          style: textTheme.bodyLarge?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: AppColors.black,
+            fontSize: 16,
           ),
-          itemBuilder: (_, index) {
-            final day = index + 1;
-            final isCompleted = completedDays.contains(day);
-
-            return Center(
-              child: Container(
-                height: 34,
-                width: 34,
-                decoration: BoxDecoration(
-                  color:
-                      isCompleted
-                          ? const Color(0xFF4CAE4F)
-                          : Colors.transparent,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    "$day",
-                    style: GoogleFonts.plusJakartaSans(
-                      fontWeight: FontWeight.w600,
-                      color:
-                          isCompleted ? Colors.white : const Color(0xFF111811),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
         ),
+        _iconButton(Icons.chevron_right),
       ],
     );
   }
 
-  // ------------------------------------------------------------
+  Widget _iconButton(IconData icon) {
+    return Container(
+      height: 36,
+      width: 36,
+      alignment: Alignment.center,
+      child: Icon(icon, size: 20, color: AppColors.black),
+    );
+  }
+
+  Widget _calendarWeekdays(TextTheme textTheme) {
+    final days = ["S", "M", "T", "W", "T", "F", "S"];
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children:
+          days
+              .map(
+                (d) => SizedBox(
+                  width: 40,
+                  child: Center(
+                    child: Text(
+                      d,
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: AppColors.black,
+                      ),
+                    ),
+                  ),
+                ),
+              )
+              .toList(),
+    );
+  }
+
+  Widget _calendarDays(TextTheme textTheme) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: 30,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 7,
+        mainAxisExtent: 42,
+      ),
+      itemBuilder: (_, index) {
+        final day = index + 1;
+        final done = completedDays.contains(day);
+
+        return Center(
+          child: Container(
+            height: 34,
+            width: 34,
+            decoration: BoxDecoration(
+              color: done ? AppColors.green : Colors.transparent,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                "$day",
+                style: textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                  color: done ? AppColors.white : AppColors.black,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // -------------------------------------------------------------------
   // HISTORY SECTION
-  // ------------------------------------------------------------
-  Widget _buildHistorySection(TextTheme textTheme) {
+  // -------------------------------------------------------------------
+  Widget _buildHistory(TextTheme textTheme) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -323,33 +328,32 @@ class _HabitDetailsScreenState extends State<HabitDetailsScreen> {
         children: [
           Text(
             "History",
-            style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-
-          // Filters
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                _chip("This Week", true),
-                const SizedBox(width: 12),
-                _chip("This Month", false),
-                const SizedBox(width: 12),
-                _chip("All Time", false),
-              ],
+            style: textTheme.titleLarge?.copyWith(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
             ),
           ),
-
-          const SizedBox(height: 16),
-
-          // History List
-          _historyRow("Today", "Completed", true),
-          _historyRow("Yesterday", "Missed", false),
-          _historyRow("Nov 28, 2023", "Completed", true),
-          _historyRow("Nov 27, 2023", "Completed", true),
+          Space.h12,
+          _historyFilters(textTheme),
+          Space.h12,
+          _historyRow("Today", "Completed", true, textTheme),
+          _historyRow("Yesterday", "Missed", false, textTheme),
+          _historyRow("Nov 28, 2023", "Completed", true, textTheme),
+          _historyRow("Nov 27, 2023", "Completed", true, textTheme),
         ],
       ),
+    );
+  }
+
+  Widget _historyFilters(TextTheme textTheme) {
+    return Row(
+      children: [
+        _chip("This Week", true),
+        Space.w12,
+        _chip("This Month", false),
+        Space.w12,
+        _chip("All Time", false),
+      ],
     );
   }
 
@@ -357,57 +361,60 @@ class _HabitDetailsScreenState extends State<HabitDetailsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
-        color: selected ? const Color(0xFF4CAE4F) : Colors.grey.shade300,
-        borderRadius: BorderRadius.circular(30),
+        color: selected ? AppColors.green : AppColors.greyLight,
+        borderRadius: BorderRadius.circular(32),
       ),
       child: Text(
         text,
         style: GoogleFonts.plusJakartaSans(
-          color: selected ? Colors.white : const Color(0xFF111811),
-          fontWeight: FontWeight.w600,
           fontSize: 13,
+          fontWeight: FontWeight.w700,
+          color: selected ? AppColors.white : AppColors.black,
         ),
       ),
     );
   }
 
-  Widget _historyRow(String date, String status, bool completed) {
+  Widget _historyRow(
+    String date,
+    String status,
+    bool done,
+    TextTheme textTheme,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.greyLight),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             date,
-            style: GoogleFonts.plusJakartaSans(
-              fontWeight: FontWeight.w600,
+            style: textTheme.bodyLarge?.copyWith(
               fontSize: 15,
-              color: const Color(0xFF111811),
+              fontWeight: FontWeight.w600,
+              color: AppColors.black,
             ),
           ),
           Row(
             children: [
               Text(
                 status,
-                style: GoogleFonts.plusJakartaSans(
+                style: textTheme.bodyMedium?.copyWith(
+                  fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color:
-                      completed
-                          ? const Color(0xFF4CAE4F)
-                          : Colors.grey.shade500,
+                  color: done ? AppColors.green : AppColors.grey,
                 ),
               ),
               const SizedBox(width: 6),
               Icon(
-                completed ? Icons.check_circle : Icons.cancel,
+                done ? Icons.check_circle : Icons.cancel,
                 size: 20,
-                color:
-                    completed ? const Color(0xFF4CAE4F) : Colors.grey.shade500,
+                color: done ? AppColors.green : AppColors.grey,
               ),
             ],
           ),
