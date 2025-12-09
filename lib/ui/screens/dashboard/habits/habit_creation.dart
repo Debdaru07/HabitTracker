@@ -308,6 +308,7 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
                       ),
                       child: Row(
                         children: [
+                          // DAILY TAB
                           Expanded(
                             child: GestureDetector(
                               onTap:
@@ -341,6 +342,8 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
                               ),
                             ),
                           ),
+
+                          // WEEKLY TAB (Selective Days)
                           Expanded(
                             child: GestureDetector(
                               onTap:
@@ -352,12 +355,12 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
                                 decoration: BoxDecoration(
                                   color:
                                       !frequencyDaily
-                                          ? AppColors.toggleBg
+                                          ? AppColors.primary
                                           : Colors.transparent,
                                   borderRadius: BorderRadius.circular(28),
                                 ),
                                 child: Text(
-                                  'Selective Days',
+                                  'Weekly',
                                   textAlign: TextAlign.center,
                                   style: textTheme.bodyMedium?.copyWith(
                                     fontSize: 14,
@@ -367,8 +370,8 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
                                             : FontWeight.w600,
                                     color:
                                         !frequencyDaily
-                                            ? AppColors.textPrimary
-                                            : AppColors.textSecondary,
+                                            ? Colors.white
+                                            : AppColors.textPrimary,
                                   ),
                                 ),
                               ),
