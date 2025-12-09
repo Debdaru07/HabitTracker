@@ -17,6 +17,12 @@ class AppColors {
   static const red = Color(0xFFE57373);
   static const yellow = Color(0xFFFFF7DD);
 
-  // Backgrounds
+  // Background
   static const screenBg = Color(0xFFF8F9FA);
+
+  // NEW COLORS FOR UI CONSISTENCY
+  static const primary = green; // your main app brand color
+  static const textPrimary = black;
+  static const textSecondary = greyDark;
+  static const toggleBg = Color(0xFFE0E0E0); // same as tailwind gray-200-ish
 }

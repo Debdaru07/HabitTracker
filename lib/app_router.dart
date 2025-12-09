@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'ui/screens/auth/login_screen.dart';
 import 'ui/screens/auth/onboarding_screen.dart';
 import 'ui/screens/dashboard/dashboard.dart';
-import 'ui/screens/dashboard/habits/habit_creation.dart';
 import 'ui/screens/dashboard/habits/habit_details.dart';
 import 'ui/screens/dashboard/settings/app_settings.dart';
+import 'ui/screens/dashboard/habits/habit_creation.dart';
 
 class AppRoutes {
   static const login = '/login';
@@ -18,8 +18,8 @@ class AppRoutes {
     login: (context) => const LoginScreen(),
     onboarding: (context) => const OnboardingScreen(),
     dashboard: (context) => const DashboardScreen(),
-    // createHabit: (context) => const HabitCreationScreen(),
-    // habitDetails: (context) => const HabitDetailsScreen(),
+    createHabit: (context) => const CreateHabitScreen(),
+    habitDetails: (context) => const HabitDetailsScreen(),
     settings: (context) => const AppSettingsScreen(),
   };
 }

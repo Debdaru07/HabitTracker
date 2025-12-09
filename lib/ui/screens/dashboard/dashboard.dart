@@ -11,8 +11,8 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  int selectedDateIndex = 2; // Wed 20
-  int selectedFilterIndex = 0; // All
+  int selectedDateIndex = 2;
+  int selectedFilterIndex = 0;
 
   final dateChips = [
     "Mon 18",
@@ -95,7 +95,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           IconButton(
             icon: const Icon(Icons.add_circle, size: 32),
             color: const Color(0xFF111811),
-            onPressed: () {},
+            onPressed:
+                () => Navigator.pushNamed(context, AppRoutes.createHabit),
           ),
         ],
       ),
@@ -303,59 +304,62 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required bool done,
     required TextTheme textTheme,
   }) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 6),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            height: 48,
-            width: 48,
-            decoration: BoxDecoration(
-              color: const Color(0xFF4CAE4F).withOpacity(0.15),
-              borderRadius: BorderRadius.circular(12),
+    return InkWell(
+      onTap: () => Navigator.pushNamed(context, AppRoutes.createHabit),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 6),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              height: 48,
+              width: 48,
+              decoration: BoxDecoration(
+                color: const Color(0xFF4CAE4F).withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: const Color(0xFF4CAE4F)),
             ),
-            child: Icon(icon, color: const Color(0xFF4CAE4F)),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF111811),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF111811),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: textTheme.bodySmall?.copyWith(
-                    fontSize: 13,
-                    color: const Color(0xFF4CAE4F),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: textTheme.bodySmall?.copyWith(
+                      fontSize: 13,
+                      color: const Color(0xFF4CAE4F),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Checkbox(
-            value: done,
-            onChanged: (_) {},
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(6),
+            Checkbox(
+              value: done,
+              onChanged: (_) {},
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
+              activeColor: const Color(0xFF4CAE4F),
             ),
-            activeColor: const Color(0xFF4CAE4F),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
