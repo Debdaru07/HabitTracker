@@ -1,5 +1,7 @@
+import '../../models/user_model.dart';
+
 class AuthResult {
-  final dynamic user;
+  final UserModel? user;
   final String? error;
 
   const AuthResult({this.user, this.error});

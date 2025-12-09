@@ -1,7 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../core/services/user_prefs.dart';
+import '../../core/services/auth_service.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
-import '../../core/services/auth_service.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthService authService;
@@ -16,30 +17,29 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     });
   }
 
-  void _onAuthCheck(AuthCheckRequested event, Emitter<AuthState> emit) {
-    emit(
-      state.copyWith(
-        user: authService.currentUser,
-        isLoading: false,
-        error: null,
-      ),
-    );
+  Future<void> _onAuthCheck(
+    AuthCheckRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    final savedUser = await UserPrefs.loadUser();
+    emit(state.copyWith(user: savedUser, isLoading: false));
   }
 
   Future<void> _onGoogleSignIn(
     SignInWithGoogleRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(state.copyWith(isLoading: true, error: null));
+    emit(state.copyWith(isLoading: true));
 
     final result = await authService.signInWithGoogle();
 
     if (result.error != null) {
-      emit(state.copyWith(isLoading: false, error: result.error));
+      emit(state.copyWith(error: result.error, isLoading: false));
       return;
     }
 
-    emit(state.copyWith(isLoading: false, user: result.user));
+    await UserPrefs.saveUser(result.user!);
+    emit(state.copyWith(user: result.user, isLoading: false));
   }
 
   Future<void> _onSignOut(
@@ -47,6 +47,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     await authService.signOut();
+    await UserPrefs.clear();
     emit(const AuthState(user: null));
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'ui/screens/auth/auth_wrapper.dart';
 import 'ui/screens/auth/login_screen.dart';
 import 'ui/screens/auth/onboarding_screen.dart';
 import 'ui/screens/dashboard/dashboard.dart';
@@ -13,6 +14,7 @@ class AppRoutes {
   static const createHabit = '/createHabit';
   static const habitDetails = '/habitDetails';
   static const settings = '/settings';
+  static const authWrapper = '/authWrapper';
 
   static Map<String, WidgetBuilder> routes = {
     login: (context) => const LoginScreen(),
@@ -21,5 +23,6 @@ class AppRoutes {
     createHabit: (context) => const CreateHabitScreen(),
     habitDetails: (context) => const HabitDetailsScreen(),
     settings: (context) => const AppSettingsScreen(),
+    authWrapper: (context) => const AuthWrapper(),
   };
 }

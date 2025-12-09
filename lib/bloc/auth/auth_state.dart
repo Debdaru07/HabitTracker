@@ -1,14 +1,14 @@
 import 'package:equatable/equatable.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../../models/user_model.dart';
 
 class AuthState extends Equatable {
-  final User? user;
+  final UserModel? user;
   final bool isLoading;
   final String? error;
 
   const AuthState({this.user, this.isLoading = false, this.error});
 
-  AuthState copyWith({User? user, bool? isLoading, String? error}) {
+  AuthState copyWith({UserModel? user, bool? isLoading, String? error}) {
     return AuthState(
       user: user ?? this.user,
       isLoading: isLoading ?? this.isLoading,
