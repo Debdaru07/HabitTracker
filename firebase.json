@@ -1,8 +1,1 @@
-{
-  "firestore": {
-    "database": "(default)",
-    "location": "asia-south1",
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
-  }
-}
+{"firestore":{"database":"(default)","location":"asia-south1","rules":"firestore.rules","indexes":"firestore.indexes.json"},"flutter":{"platforms":{"android":{"default":{"projectId":"habittracker-240f4","appId":"1:32802851484:android:d9fe81a820152335557b59","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"habittracker-240f4","appId":"1:32802851484:ios:f8a2232c8bf9331c557b59","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"habittracker-240f4","configurations":{"android":"1:32802851484:android:d9fe81a820152335557b59","ios":"1:32802851484:ios:f8a2232c8bf9331c557b59"}}}}}}

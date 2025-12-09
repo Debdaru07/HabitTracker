@@ -29,6 +29,13 @@
             {
               "client_id": "32802851484-h1j8q01fmjppferqseu2nm5oulkapj29.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "32802851484-k7sotpsi4s8fqrimbr0oo1lm0544bl1n.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.healthygrow.habittracker"
+              }
             }
           ]
         }
