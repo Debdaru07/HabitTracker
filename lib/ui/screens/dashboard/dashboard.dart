@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app_router.dart';
+
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -61,16 +63,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Row(
         children: [
           // Avatar
-          Container(
-            height: 40,
-            width: 40,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              image: DecorationImage(
-                image: NetworkImage(
-                  "https://lh3.googleusercontent.com/aida-public/AB6AXuAqoGCjYhpML56SDVa3zMJa2mrJE_0kBis_NaEQD_9k6PVRJnUUXJEvAFiyj5z01pJVi-IFDiQLJTNe8xSi2LFYcQbWZGoBgbb8G7t90IzVOB2egELXpZpNKB1_jBx7hFgdJIEEiRoyzPlgiJUl0lkS6I_4XazAPNKMgsafzz05K8PUQCXdUnIOAYBGMIar3qyYPhBkZbIbbAdjmn8ALaEetDS5wn_Rp_6YWe66cxu1mK7D49-IpD4eU--WTRug3Er7CDVcWRPzLy-k",
+          InkWell(
+            onTap: () => Navigator.pushNamed(context, AppRoutes.settings),
+            child: Container(
+              height: 40,
+              width: 40,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                image: DecorationImage(
+                  image: NetworkImage(
+                    "https://lh3.googleusercontent.com/aida-public/AB6AXuAqoGCjYhpML56SDVa3zMJa2mrJE_0kBis_NaEQD_9k6PVRJnUUXJEvAFiyj5z01pJVi-IFDiQLJTNe8xSi2LFYcQbWZGoBgbb8G7t90IzVOB2egELXpZpNKB1_jBx7hFgdJIEEiRoyzPlgiJUl0lkS6I_4XazAPNKMgsafzz05K8PUQCXdUnIOAYBGMIar3qyYPhBkZbIbbAdjmn8ALaEetDS5wn_Rp_6YWe66cxu1mK7D49-IpD4eU--WTRug3Er7CDVcWRPzLy-k",
+                  ),
+                  fit: BoxFit.cover,
                 ),
-                fit: BoxFit.cover,
               ),
             ),
           ),

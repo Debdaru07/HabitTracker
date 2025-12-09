@@ -20,6 +20,6 @@ class AppRoutes {
     dashboard: (context) => const DashboardScreen(),
     // createHabit: (context) => const HabitCreationScreen(),
     // habitDetails: (context) => const HabitDetailsScreen(),
-    // settings: (context) => const AppSettingsScreen(),
+    settings: (context) => const AppSettingsScreen(),
   };
 }
