@@ -1,9 +1,16 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app_router.dart';
+import '../../../bloc/auth/auth_bloc.dart';
+import '../../../bloc/auth/auth_event.dart';
+import '../../../core/services/user_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/spacing.dart';
+import '../../widgets/app_time_picker.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -13,9 +20,7 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  final TextEditingController nameController = TextEditingController(
-    text: "Maria Garcia",
-  );
+  final TextEditingController nameController = TextEditingController(text: "");
 
   TimeOfDay selectedTime = const TimeOfDay(hour: 8, minute: 0);
 
@@ -28,7 +33,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   String selectedGoal = "Build Good Habits";
 
   Future<void> pickTime() async {
-    final TimeOfDay? picked = await showTimePicker(
+    final picked = await showAppTimePicker(
       context: context,
       initialTime: selectedTime,
     );
@@ -52,9 +57,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return Scaffold(
       backgroundColor: AppColors.white,
 
-      /// ============================
-      /// TOP BAR
-      /// ============================
       body: SafeArea(
         child: Stack(
           children: [
@@ -63,9 +65,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  /// -----------------------------
-                  /// AppBar mimic
-                  /// -----------------------------
+                  /// TOP BAR
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -88,14 +88,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 40), // to balance spacing
+                        const SizedBox(width: 40),
                       ],
                     ),
                   ),
 
-                  /// ============================
-                  /// Illustration
-                  /// ============================
+                  /// ILLUSTRATION
                   Center(
                     child: Container(
                       height: 140,
@@ -110,9 +108,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                   Space.h16,
 
-                  /// ============================
                   /// HEADLINE
-                  /// ============================
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
@@ -125,7 +121,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                   ),
 
-                  /// Body text
+                  /// BODY TEXT
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -142,9 +138,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                   Space.h16,
 
-                  /// ============================
                   /// FORM FIELDS
-                  /// ============================
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
@@ -160,11 +154,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         Space.h8,
                         TextField(
                           controller: nameController,
+                          cursorColor: AppColors.primary,
+                          selectionHeightStyle: BoxHeightStyle.tight,
                           decoration: InputDecoration(
                             filled: true,
-                            fillColor: const Color(0xFFF2F2F7),
+                            fillColor: AppColors.primary.withOpacity(0.1),
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(14),
+                              borderRadius: BorderRadius.circular(28),
                               borderSide: BorderSide.none,
                             ),
                             contentPadding: const EdgeInsets.symmetric(
@@ -176,6 +172,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               color: Colors.grey,
                             ),
                           ),
+                          style: const TextStyle(color: Colors.black),
                         ),
 
                         Space.h24,
@@ -188,14 +185,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                         ),
                         Space.h8,
-                        GestureDetector(
+
+                        InkWell(
+                          borderRadius: BorderRadius.circular(28),
                           onTap: pickTime,
                           child: Container(
                             height: 56,
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF2F2F7),
-                              borderRadius: BorderRadius.circular(14),
+                              color: AppColors.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(28),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -281,9 +280,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
 
-            /// ============================
-            /// BOTTOM CTA BUTTON (Sticky)
-            /// ============================
+            /// BOTTOM CTA BUTTON
             Positioned(
               bottom: 0,
               left: 0,
@@ -294,7 +291,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: SizedBox(
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
+                      final currentUser = context.read<AuthBloc>().state.user;
+
+                      if (currentUser != null) {
+                        final updatedUser = currentUser.copyWith(
+                          name: nameController.text.trim(),
+                          goal: selectedGoal,
+                          reminderTime: formatTime(selectedTime),
+                          onboardingCompleted: true,
+                        );
+
+                        context.read<AuthBloc>().add(
+                          UpdateUserRequested(updatedUser),
+                        );
+
+                        await UserService().createOrUpdateUser(updatedUser);
+                      }
+
                       Navigator.pushNamed(context, AppRoutes.dashboard);
                     },
                     style: ElevatedButton.styleFrom(

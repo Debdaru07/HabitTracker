@@ -18,6 +18,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthCheckRequested>(_onAuthCheck);
     on<SignInWithGoogleRequested>(_onGoogleSignIn);
     on<SignOutRequested>(_onSignOut);
+    on<UpdateUserRequested>(_onUserUpdate);
 
     // Listen to Firebase user changes
     Future.microtask(() {
@@ -94,5 +95,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     console.log("User signed out & prefs cleared.");
 
     emit(const AuthState(user: null, isLoading: false));
+  }
+
+  // User Onboarding
+  Future<void> _onUserUpdate(
+    UpdateUserRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    console.log("Updating user in SharedPrefs...");
+
+    final updated = event.updatedUser;
+
+    // Save in SharedPreferences
+    await UserPrefs.saveUser(updated);
+
+    console.log("User updated → ${updated.toJson()}");
+
+    // Emit updated state
+    emit(state.copyWith(user: updated));
   }
 }

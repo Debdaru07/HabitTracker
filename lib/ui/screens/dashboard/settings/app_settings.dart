@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../../../../app_router.dart';
+import '../../../../bloc/auth/auth_bloc.dart';
+import '../../../../bloc/auth/auth_event.dart';
+import '../../../widgets/app_time_picker.dart';
 
 class AppSettingsScreen extends StatefulWidget {
   const AppSettingsScreen({super.key});
@@ -23,7 +29,6 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
         child: Column(
           children: [
             _buildHeader(textTheme),
-
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
@@ -32,13 +37,10 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                   children: [
                     _buildProfileCard(textTheme),
                     const SizedBox(height: 16),
-
                     _buildPreferencesCard(textTheme),
                     const SizedBox(height: 16),
-
                     _buildNotificationsCard(textTheme),
                     const SizedBox(height: 16),
-
                     _buildLogoutButton(textTheme),
                     const SizedBox(height: 60),
                   ],
@@ -51,9 +53,6 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
     );
   }
 
-  // ----------------------------------------------------------
-  // HEADER
-  // ----------------------------------------------------------
   Widget _buildHeader(TextTheme textTheme) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -64,7 +63,6 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
             onPressed: () => Navigator.pop(context),
             icon: const Icon(Icons.arrow_back_ios_new, size: 22),
           ),
-
           Expanded(
             child: Text(
               "Settings",
@@ -76,16 +74,12 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
               ),
             ),
           ),
-
-          const SizedBox(width: 40), // To balance the back arrow
+          const SizedBox(width: 40),
         ],
       ),
     );
   }
 
-  // ----------------------------------------------------------
-  // PROFILE CARD
-  // ----------------------------------------------------------
   Widget _buildProfileCard(TextTheme textTheme) {
     return _cardContainer(
       child: InkWell(
@@ -95,7 +89,6 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              // Avatar
               Container(
                 height: 56,
                 width: 56,
@@ -109,10 +102,7 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(width: 16),
-
-              // Name + Email
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -135,7 +125,6 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                   ],
                 ),
               ),
-
               const Icon(
                 Icons.arrow_forward_ios,
                 size: 18,
@@ -148,9 +137,6 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
     );
   }
 
-  // ----------------------------------------------------------
-  // PREFERENCES CARD
-  // ----------------------------------------------------------
   Widget _buildPreferencesCard(TextTheme textTheme) {
     return _cardContainer(
       child: Column(
@@ -163,9 +149,7 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
             trailing: Switch(
               value: isDarkMode,
               activeColor: const Color(0xFF4CAE4F),
-              onChanged: (v) {
-                setState(() => isDarkMode = v);
-              },
+              onChanged: (v) => setState(() => isDarkMode = v),
             ),
           ),
           _divider(),
@@ -188,9 +172,6 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
     );
   }
 
-  // ----------------------------------------------------------
-  // NOTIFICATIONS CARD
-  // ----------------------------------------------------------
   Widget _buildNotificationsCard(TextTheme textTheme) {
     return _cardContainer(
       child: Column(
@@ -203,9 +184,7 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
             trailing: Switch(
               value: dailyReminder,
               activeColor: const Color(0xFF4CAE4F),
-              onChanged: (v) {
-                setState(() => dailyReminder = v);
-              },
+              onChanged: (v) => setState(() => dailyReminder = v),
             ),
           ),
           _divider(),
@@ -214,7 +193,7 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
             title: "Reminder Time",
             trailing: TextButton(
               onPressed: () async {
-                final picked = await showTimePicker(
+                final picked = await showAppTimePicker(
                   context: context,
                   initialTime: reminderTime,
                 );
@@ -236,9 +215,6 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
     );
   }
 
-  // ----------------------------------------------------------
-  // LOGOUT BUTTON
-  // ----------------------------------------------------------
   Widget _buildLogoutButton(TextTheme textTheme) {
     return Container(
       width: double.infinity,
@@ -248,7 +224,15 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
         boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
       ),
       child: TextButton(
-        onPressed: () {},
+        onPressed: () {
+          context.read<AuthBloc>().add(SignOutRequested());
+
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            AppRoutes.login,
+            (route) => false,
+          );
+        },
         child: Text(
           "Log Out",
           style: textTheme.titleMedium?.copyWith(
@@ -259,10 +243,6 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
       ),
     );
   }
-
-  // ----------------------------------------------------------
-  // REUSABLE HELPERS
-  // ----------------------------------------------------------
 
   Widget _cardContainer({required Widget child}) {
     return Container(
