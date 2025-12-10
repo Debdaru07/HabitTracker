@@ -19,4 +19,15 @@ class UserService {
     }
     return null;
   }
+
+  Future<bool> hasOnboardingData(String uid) async {
+    final doc = await _db.collection("users").doc(uid).get();
+
+    if (!doc.exists) return false;
+
+    final data = doc.data()!;
+    return data.containsKey("goal") &&
+        data.containsKey("reminderTime") &&
+        data["onboardingCompleted"] == true;
+  }
 }
