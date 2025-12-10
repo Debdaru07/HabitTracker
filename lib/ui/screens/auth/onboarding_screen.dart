@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -23,6 +21,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final TextEditingController nameController = TextEditingController(text: "");
 
   TimeOfDay selectedTime = const TimeOfDay(hour: 8, minute: 0);
+  bool isLoading = false;
 
   List<String> goals = [
     "Build Good Habits",
@@ -56,7 +55,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.white,
-
       body: SafeArea(
         child: Stack(
           children: [
@@ -65,7 +63,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  /// TOP BAR
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -93,7 +90,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                   ),
 
-                  /// ILLUSTRATION
                   Center(
                     child: Container(
                       height: 140,
@@ -108,7 +104,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                   Space.h16,
 
-                  /// HEADLINE
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
@@ -121,7 +116,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                   ),
 
-                  /// BODY TEXT
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -138,13 +132,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                   Space.h16,
 
-                  /// FORM FIELDS
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        /// NAME FIELD
                         Text(
                           "Your Name",
                           style: textTheme.bodyLarge?.copyWith(
@@ -155,7 +147,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         TextField(
                           controller: nameController,
                           cursorColor: AppColors.primary,
-                          selectionHeightStyle: BoxHeightStyle.tight,
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: AppColors.primary.withOpacity(0.1),
@@ -177,7 +168,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                         Space.h24,
 
-                        /// TIME PICKER
                         Text(
                           "When should we remind you?",
                           style: textTheme.bodyLarge?.copyWith(
@@ -217,7 +207,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                         Space.h24,
 
-                        /// GOALS
                         Text(
                           "What brings you here?",
                           style: textTheme.bodyLarge?.copyWith(
@@ -280,7 +269,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
 
-            /// BOTTOM CTA BUTTON
             Positioned(
               bottom: 0,
               left: 0,
@@ -291,26 +279,36 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: SizedBox(
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: () async {
-                      final currentUser = context.read<AuthBloc>().state.user;
+                    onPressed:
+                        isLoading
+                            ? null
+                            : () async {
+                              setState(() => isLoading = true);
 
-                      if (currentUser != null) {
-                        final updatedUser = currentUser.copyWith(
-                          name: nameController.text.trim(),
-                          goal: selectedGoal,
-                          reminderTime: formatTime(selectedTime),
-                          onboardingCompleted: true,
-                        );
+                              final currentUser =
+                                  context.read<AuthBloc>().state.user;
 
-                        context.read<AuthBloc>().add(
-                          UpdateUserRequested(updatedUser),
-                        );
+                              if (currentUser != null) {
+                                final updatedUser = currentUser.copyWith(
+                                  name: nameController.text.trim(),
+                                  goal: selectedGoal,
+                                  reminderTime: formatTime(selectedTime),
+                                  onboardingCompleted: true,
+                                );
 
-                        await UserService().createOrUpdateUser(updatedUser);
-                      }
+                                context.read<AuthBloc>().add(
+                                  UpdateUserRequested(updatedUser),
+                                );
 
-                      Navigator.pushNamed(context, AppRoutes.dashboard);
-                    },
+                                await UserService().createOrUpdateUser(
+                                  updatedUser,
+                                );
+                              }
+
+                              setState(() => isLoading = false);
+
+                              Navigator.pushNamed(context, AppRoutes.dashboard);
+                            },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.green,
                       shape: RoundedRectangleBorder(
@@ -318,14 +316,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                       elevation: 4,
                     ),
-                    child: Text(
-                      "Complete Setup",
-                      style: textTheme.titleMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                      ),
-                    ),
+                    child:
+                        isLoading
+                            ? const SizedBox(
+                              height: 22,
+                              width: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.6,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
+                              ),
+                            )
+                            : Text(
+                              "Complete Setup",
+                              style: textTheme.titleMedium?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
+                              ),
+                            ),
                   ),
                 ),
               ),

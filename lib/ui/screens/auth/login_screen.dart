@@ -118,11 +118,12 @@ class LoginScreen extends StatelessWidget {
                                       width: 24,
                                     ),
                                     Space.w12,
-                                    const Text(
-                                      "Sign in with Google",
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontWeight: FontWeight.w700,
+                                    Text(
+                                      "Continue with Google",
+                                      style: textTheme.headlineMedium?.copyWith(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w800,
+                                        color: const Color(0xFF0D1B0E),
                                       ),
                                     ),
                                   ],
