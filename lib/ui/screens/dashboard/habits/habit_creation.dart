@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../bloc/habit/habit_bloc.dart';
+import '../../../../bloc/habit/habit_event.dart';
+import '../../../../core/services/user_prefs.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/spacing.dart';
+import '../../../../models/user_model.dart';
 import '../../../widgets/habit_day_chip.dart';
 import '../../../widgets/habit_rounded_card.dart';
 
@@ -46,6 +51,49 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
   void dispose() {
     nameController.dispose();
     super.dispose();
+  }
+
+  void _onCreateHabit() async {
+    final name = nameController.text.trim();
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a name for the habit')),
+      );
+      return;
+    }
+
+    final selectedDays =
+        List.generate(7, (i) => i).where((i) => selectedWeekDays[i]).toList();
+
+    final UserModel? savedUser = await UserPrefs.loadUser();
+    final userId = savedUser?.uid;
+    if (userId == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Unable to fetch User Id')));
+      return;
+    }
+
+    final habitData = {
+      'user_id': userId,
+      'name': name,
+      'icon': selectedIcon.codePoint,
+      'is_daily': frequencyDaily,
+      'selected_days': frequencyDaily ? [] : selectedDays,
+      'daily_time': frequencyDaily ? _formatTimeOfDay(dailyTime) : null,
+      'selective_time': frequencyDaily ? null : _formatTimeOfDay(selectiveTime),
+      'reminder_enabled': reminderEnabled,
+      'reminder_time': reminderEnabled ? _formatTimeOfDay(reminderTime) : null,
+      'created_at': DateTime.now(),
+    };
+
+    context.read<HabitBloc>().add(AddHabit(userId, habitData));
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Habit created')));
+
+    Navigator.pop(context);
   }
 
   Future<TimeOfDay?> _pickTime(TimeOfDay initial) async {
@@ -167,38 +215,6 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
     final minutes = t.minute.toString().padLeft(2, '0');
     final period = t.period == DayPeriod.am ? 'AM' : 'PM';
     return '$hour:$minutes $period';
-  }
-
-  void _onCreateHabit() {
-    final name = nameController.text.trim();
-    if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a name for the habit')),
-      );
-      return;
-    }
-
-    final selectedDays =
-        List.generate(7, (i) => i).where((i) => selectedWeekDays[i]).toList();
-
-    final habitData = {
-      'icon': selectedIcon.codePoint,
-      'name': name,
-      'frequency': frequencyDaily ? 'daily' : 'selective',
-      'daily_time': frequencyDaily ? _formatTimeOfDay(dailyTime) : null,
-      'selective_days': frequencyDaily ? null : selectedDays,
-      'selective_time': frequencyDaily ? null : _formatTimeOfDay(selectiveTime),
-      'reminder_enabled': reminderEnabled,
-      'reminder_time': reminderEnabled ? _formatTimeOfDay(reminderTime) : null,
-    };
-
-    debugPrint('Habit created: $habitData');
-
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Habit created')));
-
-    Navigator.pop(context);
   }
 
   @override

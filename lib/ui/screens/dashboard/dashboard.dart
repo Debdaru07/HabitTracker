@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app_router.dart';
+import '../../../bloc/habit/habit_bloc.dart';
+import '../../../bloc/habit/habit_event.dart';
+import '../../../bloc/habit/habit_state.dart';
+import '../../../core/services/user_prefs.dart';
+import '../../../models/user_model.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -25,6 +31,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
   ];
 
   final filters = ["All", "Morning", "Evening"];
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(Duration.zero, () async {
+      final UserModel? savedUser = await UserPrefs.loadUser();
+      final userId = savedUser?.uid ?? ''; // pull from auth provider
+      context.read<HabitBloc>().add(LoadHabits(userId));
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -253,44 +269,61 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // HABIT LIST
   // ----------------------------------------------------------
   Widget _buildHabitList(TextTheme textTheme) {
-    return Column(
-      children: [
-        _habitCard(
-          icon: Icons.water_drop,
-          title: "Drink Water",
-          subtitle: "8/8 glasses",
-          done: true,
-          textTheme: textTheme,
-        ),
-        _habitCard(
-          icon: Icons.directions_run,
-          title: "Morning Run",
-          subtitle: "1/1 complete",
-          done: true,
-          textTheme: textTheme,
-        ),
-        _habitCard(
-          icon: Icons.menu_book,
-          title: "Read 10 pages",
-          subtitle: "10/10 pages",
-          done: true,
-          textTheme: textTheme,
-        ),
-        _habitCard(
-          icon: Icons.self_improvement,
-          title: "Meditate",
-          subtitle: "0/10 minutes",
-          done: false,
-          textTheme: textTheme,
-        ),
-        _habitCard(
-          icon: Icons.edit_note,
-          title: "Journal",
-          subtitle: "0/1 session",
-          done: false,
-          textTheme: textTheme,
-        ),
-      ],
+    return BlocBuilder<HabitBloc, HabitState>(
+      builder: (context, state) {
+        if (state.isLoading) {
+          return const Padding(
+            padding: EdgeInsets.only(top: 40),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (state.habits.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.only(top: 60),
+            child: Column(
+              children: [
+                Icon(Icons.inbox, size: 70, color: Colors.grey.shade400),
+                const SizedBox(height: 12),
+                Text(
+                  "No habits yet",
+                  style: textTheme.bodyLarge?.copyWith(
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return Column(
+          children:
+              state.habits.map((habit) {
+                final icon = IconData(
+                  habit.iconCodePoint,
+                  fontFamily: 'MaterialIcons',
+                );
+
+                // Subtitle logic
+                String subtitle;
+                if (habit.isDaily) {
+                  subtitle = "Daily • ${habit.dailyTime}";
+                } else {
+                  subtitle =
+                      "Weekly • ${habit.selectedDays.length} days • ${habit.selectiveTime}";
+                }
+
+                return _habitCard(
+                  icon: icon,
+                  title: habit.name,
+                  subtitle: subtitle,
+                  done: false,
+                  textTheme: textTheme,
+                );
+              }).toList(),
+        );
+      },
     );
   }
 
