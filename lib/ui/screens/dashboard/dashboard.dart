@@ -37,7 +37,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
     Future.delayed(Duration.zero, () async {
       final UserModel? savedUser = await UserPrefs.loadUser();
-      final userId = savedUser?.uid ?? ''; // pull from auth provider
+      final userId = savedUser?.uid ?? '';
       context.read<HabitBloc>().add(LoadHabits(userId));
     });
   }
@@ -47,7 +47,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final textTheme = GoogleFonts.plusJakartaSansTextTheme();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7F6), // background-light
+      backgroundColor: const Color(0xFFF6F7F6),
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
