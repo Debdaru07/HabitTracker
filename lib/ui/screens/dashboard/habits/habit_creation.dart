@@ -23,6 +23,7 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
   Color selectedIconBg = const Color(0xFFEAF0EA);
 
   final TextEditingController nameController = TextEditingController();
+  final TextEditingController detailsController = TextEditingController();
   bool frequencyDaily = true;
   TimeOfDay dailyTime = const TimeOfDay(hour: 9, minute: 0);
 
@@ -50,6 +51,7 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
   @override
   void dispose() {
     nameController.dispose();
+    detailsController.dispose();
     super.dispose();
   }
 
@@ -77,6 +79,7 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
     final habitData = {
       'user_id': userId,
       'name': name,
+      'details': detailsController.text.trim(),
       'icon': selectedIcon.codePoint,
       'is_daily': frequencyDaily,
       'selected_days': frequencyDaily ? [] : selectedDays,
@@ -296,6 +299,34 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
                         style: textTheme.bodyMedium,
                         decoration: InputDecoration(
                           hintText: 'e.g., Drink Water',
+                          hintStyle: textTheme.bodyMedium?.copyWith(
+                            color: Colors.grey[500],
+                          ),
+                          border: InputBorder.none,
+                        ),
+                      ),
+                    ),
+                    Space.h20,
+                    Text(
+                      'Details',
+                      style: textTheme.headlineSmall?.copyWith(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    Space.h8,
+                    RoundedCard(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
+                      child: TextField(
+                        controller: detailsController,
+                        maxLines: 3,
+                        style: textTheme.bodyMedium,
+                        decoration: InputDecoration(
+                          hintText: 'Optional note about this habit...',
                           hintStyle: textTheme.bodyMedium?.copyWith(
                             color: Colors.grey[500],
                           ),

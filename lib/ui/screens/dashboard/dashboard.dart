@@ -304,8 +304,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   habit.iconCodePoint,
                   fontFamily: 'MaterialIcons',
                 );
-
-                // Subtitle logic
                 String subtitle;
                 if (habit.isDaily) {
                   subtitle = "Daily • ${habit.dailyTime}";

@@ -4,6 +4,7 @@ class HabitModel {
   final String id;
   final String userId;
   final String name;
+  final String? details;
   final int iconCodePoint;
   final bool isDaily;
   final List<int> selectedDays; // 0–6 (Sun–Sat)
@@ -19,6 +20,7 @@ class HabitModel {
     required this.id,
     required this.userId,
     required this.name,
+    required this.details,
     required this.iconCodePoint,
     required this.isDaily,
     required this.selectedDays,
@@ -37,6 +39,7 @@ class HabitModel {
       id: id,
       userId: map['user_id'] ?? '',
       name: map['name'] ?? '',
+      details: map['details'] ?? '',
       iconCodePoint: map['icon'] ?? 0,
       isDaily: map['is_daily'] ?? true,
       selectedDays: List<int>.from(map['selected_days'] ?? []),
@@ -55,6 +58,7 @@ class HabitModel {
     return {
       'user_id': userId,
       'name': name,
+      'details': details,
       'icon': iconCodePoint,
       'is_daily': isDaily,
       'selected_days': selectedDays,
@@ -71,6 +75,7 @@ class HabitModel {
   // ---------------------------------------------------------------------------
   HabitModel copyWith({
     String? name,
+    String? details,
     int? iconCodePoint,
     bool? isDaily,
     List<int>? selectedDays,
@@ -83,6 +88,7 @@ class HabitModel {
       id: id,
       userId: userId,
       name: name ?? this.name,
+      details: details ?? this.details,
       iconCodePoint: iconCodePoint ?? this.iconCodePoint,
       isDaily: isDaily ?? this.isDaily,
       selectedDays: selectedDays ?? this.selectedDays,
