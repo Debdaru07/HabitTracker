@@ -2,8 +2,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'bloc/auth/auth_event.dart';
-import 'bloc/habit/habit_bloc.dart';
 import 'firebase_options.dart';
 import 'app_router.dart';
 import 'core/theme/app_theme.dart';
@@ -12,6 +10,9 @@ import 'core/services/auth_service.dart';
 import 'core/services/habit_service.dart';
 
 import 'bloc/auth/auth_bloc.dart';
+import 'bloc/auth/auth_event.dart';
+import 'bloc/habit/habit_bloc.dart';
+import 'ui/screens/auth/auth_wrapper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,9 +36,21 @@ class HabitTrackerApp extends StatelessWidget {
         title: "Habit Tracker",
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        routes: AppRoutes.routes,
         initialRoute: AppRoutes.authWrapper,
+        routes: AppRoutes.routes,
       ),
     );
   }
 }
+
+// Source code to make the entry point as the AuthWrapper - Check the file, Will Handle it later, currently throwing error
+// MaterialApp(
+//   title: "Habit Tracker",
+//   debugShowCheckedModeBanner: false,
+//   theme: AppTheme.lightTheme,
+
+//   // ⭐ FIX: Remove initialRoute — Use home instead
+//   home: const AuthWrapper(),
+
+//   routes: AppRoutes.routes,
+// ),

@@ -6,7 +6,7 @@ class AuthState extends Equatable {
   final bool isLoading;
   final String? error;
 
-  const AuthState({this.user, this.isLoading = false, this.error});
+  const AuthState({this.user, this.isLoading = true, this.error});
 
   AuthState copyWith({UserModel? user, bool? isLoading, String? error}) {
     return AuthState(

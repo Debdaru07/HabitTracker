@@ -8,6 +8,7 @@ import 'ui/screens/dashboard/settings/app_settings.dart';
 import 'ui/screens/dashboard/habits/habit_creation.dart';
 
 class AppRoutes {
+  static const debug = '/debug';
   static const login = '/login';
   static const onboarding = '/onboarding';
   static const dashboard = '/dashboard';
