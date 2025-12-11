@@ -23,6 +23,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<DateTime> _dateWindow = [];
   int selectedDateIndex = 7; // today's index
   int selectedFilterIndex = 0;
+  final ScrollController _dateScrollController = ScrollController();
 
   final filters = ["All", "Morning", "Evening"];
 
@@ -30,6 +31,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     _generateDateWindow();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToToday();
+    });
 
     Future.delayed(Duration.zero, () async {
       final user = await UserPrefs.loadUser();
@@ -44,6 +48,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _dateWindow = List.generate(14, (i) {
       return today.subtract(Duration(days: 7 - i));
     });
+  }
+
+  void _scrollToToday() {
+    const double chipWidth = 80;
+    final double targetOffset = (selectedDateIndex * chipWidth) - 120;
+
+    if (_dateScrollController.hasClients) {
+      _dateScrollController.animateTo(
+        targetOffset < 0 ? 0 : targetOffset,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
   String _formatChipDate(DateTime date) {
@@ -163,6 +180,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return SizedBox(
       height: 48,
       child: ListView.separated(
+        controller: _dateScrollController,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         scrollDirection: Axis.horizontal,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
@@ -172,7 +190,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           final label = _formatChipDate(_dateWindow[index]);
 
           return GestureDetector(
-            onTap: () => setState(() => selectedDateIndex = index),
+            onTap: () {
+              setState(() => selectedDateIndex = index);
+              _scrollToToday(); // keep centered after tap too
+            },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               alignment: Alignment.center,
