@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../models/habit_completion_model.dart';
 import '../../models/habit_model.dart';
 
 abstract class HabitEvent extends Equatable {
@@ -15,7 +16,6 @@ class LoadHabits extends HabitEvent {
   List<Object?> get props => [userId];
 }
 
-// Internal event for streaming updates
 class HabitsUpdated extends HabitEvent {
   final List<HabitModel> habits;
 
@@ -62,4 +62,13 @@ class ToggleCompletion extends HabitEvent {
 
   @override
   List<Object?> get props => [userId, habitId, date, completed];
+}
+
+class CompletionsUpdated extends HabitEvent {
+  final List<HabitCompletionModel> completions;
+
+  CompletionsUpdated(this.completions);
+
+  @override
+  List<Object?> get props => [completions];
 }

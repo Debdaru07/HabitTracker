@@ -8,11 +8,15 @@ import '../../models/habit_model.dart';
 
 class HabitBloc extends Bloc<HabitEvent, HabitState> {
   final HabitService habitService;
+
   StreamSubscription? _habitSubscription;
+  StreamSubscription? _completionSubscription;
 
   HabitBloc(this.habitService) : super(const HabitState()) {
     on<LoadHabits>(_onLoadHabits);
     on<HabitsUpdated>(_onHabitsUpdated);
+
+    on<CompletionsUpdated>(_onCompletionsUpdated);
 
     on<AddHabit>(_onAddHabit);
     on<UpdateHabit>(_onUpdateHabit);
@@ -21,26 +25,46 @@ class HabitBloc extends Bloc<HabitEvent, HabitState> {
   }
 
   // ---------------------------------------------------------------------------
-  //  Load habits (starts a Firestore listener)
+  //  Load habits and completions (Firestore real-time listeners)
   // ---------------------------------------------------------------------------
   Future<void> _onLoadHabits(LoadHabits event, Emitter<HabitState> emit) async {
     emit(state.copyWith(isLoading: true));
 
-    // Cancel old subscription if already listening
+    // Cancel old listeners
     await _habitSubscription?.cancel();
+    await _completionSubscription?.cancel();
 
+    // HABITS LISTENER
     _habitSubscription = habitService.listenToHabits(event.userId).listen((
       data,
     ) {
       final habits =
-          data.map((map) => HabitModel.fromMap(map['habit_id'], map)).toList();
+          data.map((map) {
+            return HabitModel.fromMap(map['habit_id'], map);
+          }).toList();
 
       add(HabitsUpdated(habits));
     });
+
+    // COMPLETIONS LISTENER
+    _completionSubscription = habitService
+        .listenToCompletions(event.userId)
+        .listen((data) {
+          add(CompletionsUpdated(data));
+        });
   }
 
+  // Handle habit updates
   void _onHabitsUpdated(HabitsUpdated event, Emitter<HabitState> emit) {
     emit(state.copyWith(habits: event.habits, isLoading: false));
+  }
+
+  // Handle completion updates
+  void _onCompletionsUpdated(
+    CompletionsUpdated event,
+    Emitter<HabitState> emit,
+  ) {
+    emit(state.copyWith(completions: event.completions));
   }
 
   // ---------------------------------------------------------------------------
@@ -71,7 +95,7 @@ class HabitBloc extends Bloc<HabitEvent, HabitState> {
   }
 
   // ---------------------------------------------------------------------------
-  //  Toggle Completion
+  //  Toggle Completion (creates or updates daily completion entry)
   // ---------------------------------------------------------------------------
   Future<void> _onToggleCompletion(
     ToggleCompletion event,
@@ -88,6 +112,7 @@ class HabitBloc extends Bloc<HabitEvent, HabitState> {
   @override
   Future<void> close() {
     _habitSubscription?.cancel();
+    _completionSubscription?.cancel();
     return super.close();
   }
 }

@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../models/habit_completion_model.dart';
+
 class HabitService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
@@ -40,6 +42,19 @@ class HabitService {
         .delete();
   }
 
+  Stream<List<HabitCompletionModel>> listenToCompletions(String userId) {
+    return FirebaseFirestore.instance
+        .collection("habit_completions")
+        .where("user_id", isEqualTo: userId)
+        .snapshots()
+        .map(
+          (snap) =>
+              snap.docs
+                  .map((d) => HabitCompletionModel.fromMap(d.id, d.data()))
+                  .toList(),
+        );
+  }
+
   Stream<List<Map<String, dynamic>>> listenToHabits(String userId) {
     return _db
         .collection("users")
@@ -47,7 +62,13 @@ class HabitService {
         .collection("habits")
         .orderBy("created_at", descending: false)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
+        .map((snapshot) {
+          return snapshot.docs.map((doc) {
+            final data = doc.data();
+            data["habit_id"] = doc.id; // important
+            return data;
+          }).toList();
+        });
   }
 
   Future<void> toggleCompletion(
@@ -56,13 +77,18 @@ class HabitService {
     DateTime date,
     bool completed,
   ) async {
-    final dateKey = "${date.year}-${date.month}-${date.day}";
-    final doc = _db
-        .collection("users")
-        .doc(userId)
-        .collection("habits")
-        .doc(habitId);
+    final String dayId = date.toIso8601String().substring(0, 10);
+    final String docId = "${habitId}_$dayId";
 
-    await doc.update({"history.$dateKey": completed});
+    await FirebaseFirestore.instance
+        .collection("habit_completions")
+        .doc(docId)
+        .set({
+          "habit_id": habitId,
+          "user_id": userId,
+          "completed": completed,
+          "date": DateTime(date.year, date.month, date.day),
+          "timestamp": DateTime.now(),
+        }, SetOptions(merge: true));
   }
 }
