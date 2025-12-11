@@ -209,6 +209,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6)],
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
