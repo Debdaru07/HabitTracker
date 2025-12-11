@@ -1,5 +1,3 @@
-import 'dart:developer' as console;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -11,6 +9,7 @@ import '../../../bloc/habit/habit_state.dart';
 import '../../../core/services/user_prefs.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/spacing.dart';
+import '../../../models/habit_model.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -21,7 +20,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   List<DateTime> _dateWindow = [];
-  int selectedDateIndex = 7; // today's index
+  int selectedDateIndex = 7;
   int selectedFilterIndex = 0;
   final ScrollController _dateScrollController = ScrollController();
 
@@ -31,28 +30,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     _generateDateWindow();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToToday();
-    });
 
-    Future.delayed(Duration.zero, () async {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToToday());
+
+    Future.microtask(() async {
       final user = await UserPrefs.loadUser();
       final uid = user?.uid ?? '';
       context.read<HabitBloc>().add(LoadHabits(uid));
     });
   }
 
+  // ---------------- Date Window & Scroller ----------------
   void _generateDateWindow() {
     final today = DateTime.now();
-
-    _dateWindow = List.generate(14, (i) {
-      return today.subtract(Duration(days: 7 - i));
-    });
+    _dateWindow = List.generate(
+      14,
+      (i) => today.subtract(Duration(days: 7 - i)),
+    );
   }
 
   void _scrollToToday() {
     const double chipWidth = 80;
-    final double targetOffset = (selectedDateIndex * chipWidth) - 120;
+    final targetOffset = (selectedDateIndex * chipWidth) - 120;
 
     if (_dateScrollController.hasClients) {
       _dateScrollController.animateTo(
@@ -68,6 +67,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return "${w[date.weekday - 1]} ${date.day}";
   }
 
+  // ---------------- Completion Helpers ----------------
   bool _isHabitCompleted(HabitState state, String habitId, DateTime date) {
     final id = date.toIso8601String().substring(0, 10);
     return state.completions.any(
@@ -85,6 +85,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return _completedCount(state, date) / state.habits.length;
   }
 
+  // ----------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     final textTheme = GoogleFonts.plusJakartaSansTextTheme();
@@ -101,15 +102,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Column(
                 children: [
                   _buildTopBar(textTheme),
-                  const SizedBox(height: 12),
+                  Space.h12,
                   _buildDateChips(textTheme),
-                  const SizedBox(height: 12),
+                  Space.h12,
                   _buildProgressCard(textTheme, state, selectedDate),
-                  const SizedBox(height: 12),
+                  Space.h12,
                   _buildFilterChips(textTheme),
-                  const SizedBox(height: 12),
+                  Space.h12,
                   _buildHabitList(textTheme, state, selectedDate),
-                  const SizedBox(height: 100),
+                  Space.h16,
                 ],
               ),
             );
@@ -119,18 +120,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // TOP BAR ----------------------------------------------------------
+  // ---------------- TOP BAR ----------------
   Widget _buildTopBar(TextTheme textTheme) {
     return FutureBuilder(
       future: UserPrefs.loadUser(),
       builder: (context, snapshot) {
         final user = snapshot.data;
-        console.log('user - ${user?.photoUrl}');
+
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              // Avatar
               InkWell(
                 onTap: () => Navigator.pushNamed(context, AppRoutes.settings),
                 child: Container(
@@ -141,16 +141,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     image: DecorationImage(
                       image: NetworkImage(
                         user?.photoUrl ??
-                            "https://ui-avatars.com/api/?name=User", // fallback
+                            "https://ui-avatars.com/api/?name=User",
                       ),
                       fit: BoxFit.cover,
                     ),
                   ),
                 ),
               ),
-
               const Spacer(),
-
               Text(
                 "Today",
                 style: textTheme.titleMedium?.copyWith(
@@ -159,9 +157,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   color: const Color(0xFF111811),
                 ),
               ),
-
               const Spacer(),
-
               IconButton(
                 icon: const Icon(Icons.add_circle, size: 32),
                 color: const Color(0xFF111811),
@@ -175,7 +171,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // DATE CHIPS -------------------------------------------------------
+  // ---------------- DATE CHIPS ----------------
   Widget _buildDateChips(TextTheme textTheme) {
     return SizedBox(
       height: 48,
@@ -183,7 +179,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         controller: _dateScrollController,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         scrollDirection: Axis.horizontal,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (_, __) => Space.w8,
         itemCount: _dateWindow.length,
         itemBuilder: (context, index) {
           final isSelected = index == selectedDateIndex;
@@ -192,16 +188,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
           return GestureDetector(
             onTap: () {
               setState(() => selectedDateIndex = index);
-              _scrollToToday(); // keep centered after tap too
+              _scrollToToday();
             },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color:
-                    isSelected
-                        ? const Color(0xFF4CAE4F)
-                        : const Color(0xFFEAF0EA),
+                color: isSelected ? AppColors.green : const Color(0xFFEAF0EA),
                 borderRadius: BorderRadius.circular(24),
                 boxShadow:
                     isSelected
@@ -223,7 +216,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // PROGRESS CARD ----------------------------------------------------
+  // ---------------- PROGRESS CARD ----------------
   Widget _buildProgressCard(
     TextTheme textTheme,
     HabitState state,
@@ -237,12 +230,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6)],
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -265,25 +257,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
             borderRadius: BorderRadius.circular(20),
             child: Container(
               height: 8,
+              width: double.infinity,
               color: AppColors.backgroundLight,
-              width: MediaQuery.of(context).size.width,
               child: FractionallySizedBox(
-                alignment: Alignment.centerLeft, // <-- starts from left now
+                alignment: Alignment.centerLeft,
                 widthFactor: factor,
-                child: Container(color: const Color(0xFF4CAE4F)),
+                child: Container(color: AppColors.green),
               ),
             ),
           ),
-          Space.h8,
         ],
       ),
     );
   }
 
-  // FILTER CHIPS -----------------------------------------------------
+  // ---------------- FILTER CHIPS ----------------
   Widget _buildFilterChips(TextTheme textTheme) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
       children: List.generate(filters.length, (index) {
         final selected = index == selectedFilterIndex;
 
@@ -296,10 +286,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color:
-                    selected
-                        ? const Color(0xFF4CAE4F)
-                        : const Color(0xFFEAF0EA),
+                color: selected ? AppColors.green : const Color(0xFFEAF0EA),
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Text(
@@ -317,7 +304,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // HABIT LIST -------------------------------------------------------
+  // ---------------- HABIT LIST ----------------
   Widget _buildHabitList(TextTheme textTheme, HabitState state, DateTime date) {
     if (state.isLoading) {
       return const Padding(
@@ -332,7 +319,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           children: [
             Icon(Icons.inbox, size: 70, color: Colors.grey.shade400),
-            const SizedBox(height: 12),
+            Space.h12,
             Text(
               "No habits yet",
               style: textTheme.bodyLarge?.copyWith(
@@ -354,97 +341,105 @@ class _DashboardScreenState extends State<DashboardScreen> {
             );
             final completed = _isHabitCompleted(state, habit.id, date);
 
-            String subtitle =
+            final subtitle =
                 habit.isDaily
                     ? "Daily • ${habit.dailyTime}"
                     : "Weekly • ${habit.selectedDays.length} days • ${habit.selectiveTime}";
 
             return _habitCard(
-              habitId: habit.id,
+              habit: habit,
               icon: icon,
-              title: habit.name,
               subtitle: subtitle,
               done: completed,
               selectedDate: date,
               textTheme: textTheme,
+              state: state,
             );
           }).toList(),
     );
   }
 
-  // HABIT CARD -------------------------------------------------------
+  // ---------------- HABIT CARD ----------------
   Widget _habitCard({
-    required String habitId,
+    required HabitModel habit,
     required IconData icon,
-    required String title,
     required String subtitle,
     required bool done,
     required DateTime selectedDate,
     required TextTheme textTheme,
+    required HabitState state,
   }) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6)],
-      ),
-      child: Row(
-        children: [
-          Container(
-            height: 48,
-            width: 48,
-            decoration: BoxDecoration(
-              color: const Color(0xFF4CAE4F).withOpacity(0.15),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: const Color(0xFF4CAE4F)),
+    return InkWell(
+      onTap:
+          () => Navigator.pushNamed(
+            context,
+            AppRoutes.habitDetails,
+            arguments: {"habit": habit, "completions": state.completions},
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF111811),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: textTheme.bodySmall?.copyWith(
-                    fontSize: 13,
-                    color: const Color(0xFF4CAE4F),
-                  ),
-                ),
-              ],
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6)],
+        ),
+        child: Row(
+          children: [
+            Container(
+              height: 48,
+              width: 48,
+              decoration: BoxDecoration(
+                color: AppColors.greenLight.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: AppColors.green),
             ),
-          ),
-          Checkbox(
-            value: done,
-            onChanged: (v) async {
-              final user = await UserPrefs.loadUser();
-              final userId = user?.uid ?? '';
+            Space.w16,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    habit.name,
+                    style: textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.black,
+                    ),
+                  ),
+                  Space.h4,
+                  Text(
+                    subtitle,
+                    style: textTheme.bodySmall?.copyWith(
+                      fontSize: 13,
+                      color: AppColors.green,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Checkbox(
+              value: done,
+              onChanged: (v) async {
+                final user = await UserPrefs.loadUser();
+                final userId = user?.uid ?? '';
 
-              context.read<HabitBloc>().add(
-                ToggleCompletion(
-                  userId: userId,
-                  habitId: habitId,
-                  date: selectedDate,
-                  completed: v ?? false,
-                ),
-              );
-            },
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(6),
+                context.read<HabitBloc>().add(
+                  ToggleCompletion(
+                    userId: userId,
+                    habitId: habit.id,
+                    date: selectedDate,
+                    completed: v ?? false,
+                  ),
+                );
+              },
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
+              activeColor: AppColors.green,
             ),
-            activeColor: const Color(0xFF4CAE4F),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

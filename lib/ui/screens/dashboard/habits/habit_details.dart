@@ -1,33 +1,75 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/spacing.dart';
+import '../../../../models/habit_model.dart';
+import '../../../../models/habit_completion_model.dart';
 
 class HabitDetailsScreen extends StatefulWidget {
-  const HabitDetailsScreen({super.key});
+  final HabitModel habit;
+  final List<HabitCompletionModel> completions;
+
+  const HabitDetailsScreen({
+    super.key,
+    required this.habit,
+    required this.completions,
+  });
 
   @override
   State<HabitDetailsScreen> createState() => _HabitDetailsScreenState();
 }
 
 class _HabitDetailsScreenState extends State<HabitDetailsScreen> {
-  final List<int> completedDays = [
-    5,
-    7,
-    8,
-    9,
-    12,
-    13,
-    14,
-    15,
-    16,
-    17,
-    18,
-    22,
-    23,
-    27,
-    28,
-  ];
+  late DateTime month;
+  late List<int> completedDays;
+
+  @override
+  void initState() {
+    super.initState();
+    month = DateTime(DateTime.now().year, DateTime.now().month);
+    completedDays =
+        widget.completions
+            .where((c) => c.habitId == widget.habit.id)
+            .where(
+              (c) => c.date.year == month.year && c.date.month == month.month,
+            )
+            .map((c) => c.date.day)
+            .toList();
+  }
+
+  int getCurrentStreak() {
+    int streak = 0;
+    DateTime check = DateTime.now();
+    while (completedDays.contains(check.day)) {
+      streak++;
+      check = check.subtract(const Duration(days: 1));
+    }
+    return streak;
+  }
+
+  int getLongestStreak() {
+    int longest = 0, current = 0;
+    for (
+      int i = 1;
+      i <= DateUtils.getDaysInMonth(month.year, month.month);
+      i++
+    ) {
+      if (completedDays.contains(i)) {
+        current++;
+        longest = current > longest ? current : longest;
+      } else {
+        current = 0;
+      }
+    }
+    return longest;
+  }
+
+  double getCompletionRate() {
+    final d = DateUtils.getDaysInMonth(month.year, month.month);
+    return completedDays.isEmpty ? 0 : (completedDays.length / d);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,20 +80,20 @@ class _HabitDetailsScreenState extends State<HabitDetailsScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            _buildAppBar(textTheme),
+            _appBar(textTheme),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.only(bottom: 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildHeader(textTheme),
+                    _header(textTheme),
                     Space.h12,
-                    _buildStatsRow(textTheme),
+                    _stats(textTheme),
                     Space.h12,
-                    _buildCalendar(textTheme),
+                    _calendar(textTheme),
                     Space.h12,
-                    _buildHistory(textTheme),
+                    _history(textTheme),
                   ],
                 ),
               ),
@@ -62,20 +104,13 @@ class _HabitDetailsScreenState extends State<HabitDetailsScreen> {
     );
   }
 
-  // -------------------------------------------------------------------
-  // APP BAR
-  // -------------------------------------------------------------------
-  Widget _buildAppBar(TextTheme textTheme) {
+  Widget _appBar(TextTheme textTheme) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: AppColors.black,
-              size: 24,
-            ),
+            icon: const Icon(Icons.arrow_back, color: AppColors.black),
             onPressed: () => Navigator.pop(context),
           ),
           Expanded(
@@ -83,36 +118,40 @@ class _HabitDetailsScreenState extends State<HabitDetailsScreen> {
               "Habit Details",
               textAlign: TextAlign.center,
               style: textTheme.titleMedium?.copyWith(
-                color: AppColors.black,
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
               ),
             ),
           ),
+          const SizedBox(width: 48),
         ],
       ),
     );
   }
 
-  // -------------------------------------------------------------------
-  // HEADER (ICON + TITLE + SUBTITLE)
-  // -------------------------------------------------------------------
-  Widget _buildHeader(TextTheme textTheme) {
+  Widget _header(TextTheme textTheme) {
+    final icon = IconData(
+      widget.habit.iconCodePoint,
+      fontFamily: "MaterialIcons",
+    );
+
+    final subtitle =
+        widget.habit.isDaily
+            ? "Daily • ${widget.habit.dailyTime}"
+            : "Weekly • ${widget.habit.selectedDays.length} days • ${widget.habit.selectiveTime}";
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
             height: 90,
             width: 90,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppColors.greenLight,
               shape: BoxShape.circle,
             ),
-            child: const Center(
-              child: Icon(Icons.auto_stories, color: AppColors.green, size: 44),
-            ),
+            child: Center(child: Icon(icon, size: 44, color: AppColors.green)),
           ),
           Space.w16,
           Expanded(
@@ -120,20 +159,18 @@ class _HabitDetailsScreenState extends State<HabitDetailsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Read Daily",
+                  widget.habit.name,
                   style: textTheme.titleMedium?.copyWith(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.black,
                   ),
                 ),
                 Space.h4,
                 Text(
-                  "Read for 15 minutes every day",
+                  subtitle,
                   style: textTheme.bodyMedium?.copyWith(
                     color: AppColors.greyDark,
                     fontSize: 15,
-                    fontWeight: FontWeight.w400,
                   ),
                 ),
               ],
@@ -144,19 +181,31 @@ class _HabitDetailsScreenState extends State<HabitDetailsScreen> {
     );
   }
 
-  // -------------------------------------------------------------------
-  // STATS ROW — 3 CARDS
-  // -------------------------------------------------------------------
-  Widget _buildStatsRow(TextTheme textTheme) {
+  Widget _stats(TextTheme textTheme) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Wrap(
         spacing: 12,
         runSpacing: 12,
         children: [
-          _statItem("Current Streak", "12 Days", AppColors.green, textTheme),
-          _statItem("Completion Rate", "90%", AppColors.black, textTheme),
-          _statItem("Longest Streak", "25 Days", AppColors.black, textTheme),
+          _statItem(
+            "Current Streak",
+            "${getCurrentStreak()} Days",
+            AppColors.green,
+            textTheme,
+          ),
+          _statItem(
+            "Completion Rate",
+            "${(getCompletionRate() * 100).round()}%",
+            AppColors.black,
+            textTheme,
+          ),
+          _statItem(
+            "Longest Streak",
+            "${getLongestStreak()} Days",
+            AppColors.black,
+            textTheme,
+          ),
         ],
       ),
     );
@@ -179,14 +228,7 @@ class _HabitDetailsScreenState extends State<HabitDetailsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: textTheme.bodyMedium?.copyWith(
-              fontSize: 14,
-              color: AppColors.black,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          Text(title, style: textTheme.bodyMedium?.copyWith(fontSize: 14)),
           Space.h8,
           Text(
             value,
@@ -201,10 +243,9 @@ class _HabitDetailsScreenState extends State<HabitDetailsScreen> {
     );
   }
 
-  // -------------------------------------------------------------------
-  // CALENDAR SECTION
-  // -------------------------------------------------------------------
-  Widget _buildCalendar(TextTheme textTheme) {
+  Widget _calendar(TextTheme textTheme) {
+    final daysInMonth = DateUtils.getDaysInMonth(month.year, month.month);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
@@ -216,111 +257,91 @@ class _HabitDetailsScreenState extends State<HabitDetailsScreen> {
         ),
         child: Column(
           children: [
-            _calendarHeader(textTheme),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _iconBtn(Icons.chevron_left),
+                Text(
+                  DateFormat("MMMM yyyy").format(month),
+                  style: textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                _iconBtn(Icons.chevron_right),
+              ],
+            ),
             Space.h8,
-            _calendarWeekdays(textTheme),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children:
+                  ["S", "M", "T", "W", "T", "F", "S"]
+                      .map(
+                        (e) => SizedBox(
+                          width: 40,
+                          child: Center(
+                            child: Text(
+                              e,
+                              style: textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
+            ),
             Space.h4,
-            _calendarDays(textTheme),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: daysInMonth,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 7,
+                mainAxisExtent: 42,
+              ),
+              itemBuilder: (_, index) {
+                final day = index + 1;
+                final done = completedDays.contains(day);
+
+                return Center(
+                  child: Container(
+                    height: 34,
+                    width: 34,
+                    decoration: BoxDecoration(
+                      color: done ? AppColors.green : Colors.transparent,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        "$day",
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: done ? AppColors.white : AppColors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _calendarHeader(TextTheme textTheme) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        _iconButton(Icons.chevron_left),
-        Text(
-          "November 2023",
-          style: textTheme.bodyLarge?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: AppColors.black,
-            fontSize: 16,
-          ),
-        ),
-        _iconButton(Icons.chevron_right),
-      ],
-    );
-  }
+  Widget _iconBtn(IconData i) => Container(
+    height: 36,
+    width: 36,
+    alignment: Alignment.center,
+    child: Icon(i),
+  );
 
-  Widget _iconButton(IconData icon) {
-    return Container(
-      height: 36,
-      width: 36,
-      alignment: Alignment.center,
-      child: Icon(icon, size: 20, color: AppColors.black),
-    );
-  }
+  Widget _history(TextTheme textTheme) {
+    final history =
+        widget.completions.where((c) => c.habitId == widget.habit.id).toList()
+          ..sort((a, b) => b.date.compareTo(a.date));
 
-  Widget _calendarWeekdays(TextTheme textTheme) {
-    final days = ["S", "M", "T", "W", "T", "F", "S"];
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children:
-          days
-              .map(
-                (d) => SizedBox(
-                  width: 40,
-                  child: Center(
-                    child: Text(
-                      d,
-                      style: textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        color: AppColors.black,
-                      ),
-                    ),
-                  ),
-                ),
-              )
-              .toList(),
-    );
-  }
-
-  Widget _calendarDays(TextTheme textTheme) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: 30,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 7,
-        mainAxisExtent: 42,
-      ),
-      itemBuilder: (_, index) {
-        final day = index + 1;
-        final done = completedDays.contains(day);
-
-        return Center(
-          child: Container(
-            height: 34,
-            width: 34,
-            decoration: BoxDecoration(
-              color: done ? AppColors.green : Colors.transparent,
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                "$day",
-                style: textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
-                  color: done ? AppColors.white : AppColors.black,
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  // -------------------------------------------------------------------
-  // HISTORY SECTION
-  // -------------------------------------------------------------------
-  Widget _buildHistory(TextTheme textTheme) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -328,49 +349,22 @@ class _HabitDetailsScreenState extends State<HabitDetailsScreen> {
         children: [
           Text(
             "History",
-            style: textTheme.titleLarge?.copyWith(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+            style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
           Space.h12,
-          _historyFilters(textTheme),
-          Space.h12,
-          _historyRow("Today", "Completed", true, textTheme),
-          _historyRow("Yesterday", "Missed", false, textTheme),
-          _historyRow("Nov 28, 2023", "Completed", true, textTheme),
-          _historyRow("Nov 27, 2023", "Completed", true, textTheme),
+          Column(
+            children:
+                history.map((c) {
+                  final d = DateFormat("MMM d, yyyy").format(c.date);
+                  return _historyRow(
+                    d,
+                    c.completed ? "Completed" : "Missed",
+                    c.completed,
+                    textTheme,
+                  );
+                }).toList(),
+          ),
         ],
-      ),
-    );
-  }
-
-  Widget _historyFilters(TextTheme textTheme) {
-    return Row(
-      children: [
-        _chip("This Week", true),
-        Space.w12,
-        _chip("This Month", false),
-        Space.w12,
-        _chip("All Time", false),
-      ],
-    );
-  }
-
-  Widget _chip(String text, bool selected) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-      decoration: BoxDecoration(
-        color: selected ? AppColors.green : AppColors.greyLight,
-        borderRadius: BorderRadius.circular(32),
-      ),
-      child: Text(
-        text,
-        style: GoogleFonts.plusJakartaSans(
-          fontSize: 13,
-          fontWeight: FontWeight.w700,
-          color: selected ? AppColors.white : AppColors.black,
-        ),
       ),
     );
   }
@@ -394,18 +388,13 @@ class _HabitDetailsScreenState extends State<HabitDetailsScreen> {
         children: [
           Text(
             date,
-            style: textTheme.bodyLarge?.copyWith(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: AppColors.black,
-            ),
+            style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
           ),
           Row(
             children: [
               Text(
                 status,
                 style: textTheme.bodyMedium?.copyWith(
-                  fontSize: 14,
                   fontWeight: FontWeight.w700,
                   color: done ? AppColors.green : AppColors.grey,
                 ),

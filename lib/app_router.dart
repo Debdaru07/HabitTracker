@@ -22,7 +22,13 @@ class AppRoutes {
     onboarding: (context) => const OnboardingScreen(),
     dashboard: (context) => const DashboardScreen(),
     createHabit: (context) => const CreateHabitScreen(),
-    habitDetails: (context) => const HabitDetailsScreen(),
+    habitDetails: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments as Map;
+      return HabitDetailsScreen(
+        habit: args["habit"],
+        completions: args["completions"],
+      );
+    },
     settings: (context) => const AppSettingsScreen(),
     authWrapper: (context) => const AuthWrapper(),
   };
