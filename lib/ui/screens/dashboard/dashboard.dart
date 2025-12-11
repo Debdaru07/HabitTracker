@@ -309,7 +309,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (state.isLoading) {
       return const Padding(
         padding: EdgeInsets.only(top: 40),
-        child: Center(child: CircularProgressIndicator()),
+        child: Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
       );
     }
 

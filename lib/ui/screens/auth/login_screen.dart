@@ -7,6 +7,7 @@ import '../../../bloc/auth/auth_bloc.dart';
 import '../../../bloc/auth/auth_event.dart';
 import '../../../bloc/auth/auth_state.dart';
 import '../../../core/services/user_service.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/spacing.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -116,7 +117,7 @@ class LoginScreen extends StatelessWidget {
                                   height: 22,
                                   width: 22,
                                   child: CircularProgressIndicator(
-                                    color: Colors.black,
+                                    color: AppColors.primary,
                                     strokeWidth: 2,
                                   ),
                                 )
