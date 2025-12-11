@@ -1,3 +1,5 @@
+import 'dart:developer' as console;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -102,48 +104,57 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   // TOP BAR ----------------------------------------------------------
   Widget _buildTopBar(TextTheme textTheme) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          // Avatar
-          InkWell(
-            onTap: () => Navigator.pushNamed(context, AppRoutes.settings),
-            child: Container(
-              height: 40,
-              width: 40,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                image: DecorationImage(
-                  image: NetworkImage(
-                    "https://lh3.googleusercontent.com/aida-public/AB6AXuAqoGCjYhpML56SDVa3zMJa2mrJE_0kBis_NaEQD_9k6PVRJnUUXJEvAFiyj5z01pJVi-IFDiQLJTNe8xSi2LFYcQbWZGoBgbb8G7t90IzVOB2egELXpZpNKB1_jBx7hFgdJIEEiRoyzPlgiJUl0lkS6I_4XazAPNKMgsafzz05K8PUQCXdUnIOAYBGMIar3qyYPhBkZbIbbAdjmn8ALaEetDS5wn_Rp_6YWe66cxu1mK7D49-IpD4eU--WTRug3Er7CDVcWRPzLy-k",
+    return FutureBuilder(
+      future: UserPrefs.loadUser(),
+      builder: (context, snapshot) {
+        final user = snapshot.data;
+        console.log('user - ${user?.photoUrl}');
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              // Avatar
+              InkWell(
+                onTap: () => Navigator.pushNamed(context, AppRoutes.settings),
+                child: Container(
+                  height: 40,
+                  width: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    image: DecorationImage(
+                      image: NetworkImage(
+                        user?.photoUrl ??
+                            "https://ui-avatars.com/api/?name=User", // fallback
+                      ),
+                      fit: BoxFit.cover,
+                    ),
                   ),
-                  fit: BoxFit.cover,
                 ),
               ),
-            ),
-          ),
-          const Spacer(),
 
-          Text(
-            "Today",
-            style: textTheme.titleMedium?.copyWith(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF111811),
-            ),
-          ),
-          const Spacer(),
+              const Spacer(),
 
-          // Add Habit Button
-          IconButton(
-            icon: const Icon(Icons.add_circle, size: 32),
-            color: const Color(0xFF111811),
-            onPressed:
-                () => Navigator.pushNamed(context, AppRoutes.createHabit),
+              Text(
+                "Today",
+                style: textTheme.titleMedium?.copyWith(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF111811),
+                ),
+              ),
+
+              const Spacer(),
+
+              IconButton(
+                icon: const Icon(Icons.add_circle, size: 32),
+                color: const Color(0xFF111811),
+                onPressed:
+                    () => Navigator.pushNamed(context, AppRoutes.createHabit),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
