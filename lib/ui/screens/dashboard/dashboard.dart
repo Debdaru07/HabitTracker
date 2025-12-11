@@ -8,6 +8,7 @@ import '../../../bloc/habit/habit_event.dart';
 import '../../../bloc/habit/habit_state.dart';
 import '../../../core/services/user_prefs.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/spacing.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -227,12 +228,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          Space.h16,
           ClipRRect(
             borderRadius: BorderRadius.circular(20),
             child: Container(
               height: 8,
-              color: AppColors.grey,
+              color: AppColors.backgroundLight,
+              width: MediaQuery.of(context).size.width,
               child: FractionallySizedBox(
                 alignment: Alignment.centerLeft, // <-- starts from left now
                 widthFactor: factor,
@@ -240,6 +242,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
           ),
+          Space.h8,
         ],
       ),
     );
