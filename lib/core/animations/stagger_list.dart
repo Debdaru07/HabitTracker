@@ -16,8 +16,8 @@ class StaggerList extends StatelessWidget {
       children: List.generate(
         children.length,
         (i) => _StaggerItem(
-          child: children[i],
           delay: Duration(milliseconds: i * interval.inMilliseconds),
+          child: children[i],
         ),
       ),
     );

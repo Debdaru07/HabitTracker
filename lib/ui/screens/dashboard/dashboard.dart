@@ -6,6 +6,7 @@ import '../../../app_router.dart';
 import '../../../bloc/habit/habit_bloc.dart';
 import '../../../bloc/habit/habit_event.dart';
 import '../../../bloc/habit/habit_state.dart';
+import '../../../core/animations/stagger_list.dart';
 import '../../../core/services/user_prefs.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/spacing.dart';
@@ -40,7 +41,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
-  // ---------------- Date Window & Scroller ----------------
   void _generateDateWindow() {
     final today = DateTime.now();
     _dateWindow = List.generate(
@@ -56,7 +56,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (_dateScrollController.hasClients) {
       _dateScrollController.animateTo(
         targetOffset < 0 ? 0 : targetOffset,
-        duration: const Duration(milliseconds: 400),
+        duration: const Duration(milliseconds: 350),
         curve: Curves.easeOut,
       );
     }
@@ -67,7 +67,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return "${w[date.weekday - 1]} ${date.day}";
   }
 
-  // ---------------- Completion Helpers ----------------
   bool _isHabitCompleted(HabitState state, String habitId, DateTime date) {
     final id = date.toIso8601String().substring(0, 10);
     return state.completions.any(
@@ -85,13 +84,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return _completedCount(state, date) / state.habits.length;
   }
 
-  // ----------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     final textTheme = GoogleFonts.plusJakartaSansTextTheme();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7F6),
+      backgroundColor: AppColors.screenBg,
       body: SafeArea(
         child: BlocBuilder<HabitBloc, HabitState>(
           builder: (context, state) {
@@ -101,22 +99,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
               physics: const BouncingScrollPhysics(),
               child: Column(
                 children: [
-                  _buildTopBar(textTheme),
+                  _animatedSection(_buildTopBar(textTheme)),
                   Space.h12,
-                  _buildDateChips(textTheme),
+                  _animatedSection(_buildDateChips(textTheme), delay: 100),
                   Space.h12,
-                  _buildProgressCard(textTheme, state, selectedDate),
+                  _animatedScale(
+                    _buildProgressCard(textTheme, state, selectedDate),
+                  ),
                   Space.h12,
-                  _buildFilterChips(textTheme),
+                  _animatedSection(_buildFilterChips(textTheme), delay: 150),
                   Space.h12,
                   _buildHabitList(textTheme, state, selectedDate),
-                  Space.h16,
                 ],
               ),
             );
           },
         ),
       ),
+    );
+  }
+
+  // ---------------- ANIMATION WRAPPERS ----------------
+
+  Widget _animatedSection(Widget child, {int delay = 0}) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+      builder: (context, value, _) {
+        return Opacity(
+          opacity: value,
+          child: Transform.translate(
+            offset: Offset(0, (1 - value) * 20),
+            child: child,
+          ),
+        );
+      },
+      child: child,
+      onEnd: () {},
+    );
+  }
+
+  Widget _animatedScale(Widget child) {
+    return TweenAnimationBuilder(
+      tween: Tween<double>(begin: 0.85, end: 1),
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
+      builder: (context, value, _) {
+        return Transform.scale(scale: value, child: child);
+      },
     );
   }
 
@@ -144,6 +175,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             "https://ui-avatars.com/api/?name=User",
                       ),
                       fit: BoxFit.cover,
+                      onError: (e, _) {
+                        debugPrint("Failed loading avatar → $e");
+                      },
                     ),
                   ),
                 ),
@@ -154,13 +188,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 style: textTheme.titleMedium?.copyWith(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF111811),
+                  color: AppColors.black,
                 ),
               ),
               const Spacer(),
               IconButton(
                 icon: const Icon(Icons.add_circle, size: 32),
-                color: const Color(0xFF111811),
+                color: AppColors.black,
                 onPressed:
                     () => Navigator.pushNamed(context, AppRoutes.createHabit),
               ),
@@ -190,7 +224,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               setState(() => selectedDateIndex = index);
               _scrollToToday();
             },
-            child: Container(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
               padding: const EdgeInsets.symmetric(horizontal: 16),
               alignment: Alignment.center,
               decoration: BoxDecoration(
@@ -206,7 +241,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 style: textTheme.bodyMedium?.copyWith(
                   fontSize: 14,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  color: isSelected ? Colors.white : const Color(0xFF111811),
+                  color: isSelected ? Colors.white : AppColors.black,
                 ),
               ),
             ),
@@ -277,34 +312,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
       children: List.generate(filters.length, (index) {
         final selected = index == selectedFilterIndex;
 
-        return Padding(
-          padding: const EdgeInsets.only(left: 16),
-          child: GestureDetector(
-            onTap: () => setState(() => selectedFilterIndex = index),
-            child: Container(
-              height: 32,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: selected ? AppColors.green : const Color(0xFFEAF0EA),
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Text(
-                filters[index],
-                style: textTheme.bodyMedium?.copyWith(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: selected ? Colors.white : const Color(0xFF111811),
+        return _animatedSection(
+          Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: GestureDetector(
+              onTap: () => setState(() => selectedFilterIndex = index),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                height: 32,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: selected ? AppColors.green : const Color(0xFFEAF0EA),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Text(
+                  filters[index],
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: selected ? Colors.white : AppColors.black,
+                  ),
                 ),
               ),
             ),
           ),
+          delay: 80 * index,
         );
       }),
     );
   }
 
-  // ---------------- HABIT LIST ----------------
+  // ---------------- HABIT LIST WITH STAGGER ----------------
   Widget _buildHabitList(TextTheme textTheme, HabitState state, DateTime date) {
     if (state.isLoading) {
       return const Padding(
@@ -334,7 +373,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
     }
 
-    return Column(
+    return StaggerList(
+      interval: const Duration(milliseconds: 60),
       children:
           state.habits.map((habit) {
             final icon = IconData(
@@ -378,7 +418,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             AppRoutes.habitDetails,
             arguments: {"habit": habit, "completions": state.completions},
           ),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -392,7 +433,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               height: 48,
               width: 48,
               decoration: BoxDecoration(
-                color: AppColors.greenLight.withOpacity(0.3),
+                color: AppColors.greenLight.withOpacity(0.28),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: AppColors.green),
