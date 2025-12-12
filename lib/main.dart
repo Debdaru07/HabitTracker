@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import 'bloc/notification/notification_bloc.dart';
+import 'core/services/notification_local.dart';
+import 'core/services/notification_service.dart';
 import 'firebase_options.dart';
 import 'app_router.dart';
 import 'core/theme/app_theme.dart';
@@ -30,9 +33,22 @@ class HabitTrackerApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<AuthBloc>(
-          create: (_) => AuthBloc(AuthService())..add(AuthCheckRequested()),
+          create:
+              (_) =>
+                  AuthBloc(AuthService(), NotificationLocalStore())
+                    ..add(AuthCheckRequested()),
         ),
-        BlocProvider<HabitBloc>(create: (_) => HabitBloc(HabitService())),
+        BlocProvider<HabitBloc>(
+          create:
+              (_) => HabitBloc(
+                HabitService(),
+                NotificationService(),
+                NotificationLocalStore(),
+              ),
+        ),
+        BlocProvider<NotificationBloc>(
+          create: (_) => NotificationBloc(NotificationService()),
+        ),
       ],
       child: MaterialApp(
         title: "Habit Tracker",

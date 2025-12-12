@@ -1,0 +1,3 @@
+class NotificationState {
+  const NotificationState();
+}

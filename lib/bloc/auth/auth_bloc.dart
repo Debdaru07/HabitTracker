@@ -2,6 +2,7 @@ import 'dart:developer' as console;
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/services/auth_service.dart';
+import '../../core/services/notification_local.dart';
 import '../../core/services/user_prefs.dart';
 import '../../models/user_model.dart';
 
@@ -10,8 +11,10 @@ import 'auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthService authService;
+  final NotificationLocalStore notificationStore;
 
-  AuthBloc(this.authService) : super(const AuthState()) {
+  AuthBloc(this.authService, this.notificationStore)
+    : super(const AuthState()) {
     console.log("AuthBloc initialized");
 
     // Register event handlers first
@@ -44,6 +47,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     if (savedUser != null) {
       console.log("User found in SharedPrefs → ${savedUser.uid}");
+      await notificationStore.init();
       emit(state.copyWith(user: savedUser, isLoading: false));
     } else {
       console.log("No user found → Redirect to Login");

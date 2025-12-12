@@ -1,21 +1,28 @@
 import 'dart:async';
+
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../core/services/habit_service.dart';
+import '../../core/services/notification_local.dart';
+import '../../core/services/notification_service.dart';
+
+import '../../models/habit_model.dart';
 import 'habit_event.dart';
 import 'habit_state.dart';
-import '../../core/services/habit_service.dart';
-import '../../models/habit_model.dart';
 
 class HabitBloc extends Bloc<HabitEvent, HabitState> {
   final HabitService habitService;
+  final NotificationService notificationService;
+  final NotificationLocalStore notificationStore;
 
   StreamSubscription? _habitSubscription;
   StreamSubscription? _completionSubscription;
 
-  HabitBloc(this.habitService) : super(const HabitState()) {
+  HabitBloc(this.habitService, this.notificationService, this.notificationStore)
+    : super(const HabitState()) {
     on<LoadHabits>(_onLoadHabits);
     on<HabitsUpdated>(_onHabitsUpdated);
-
     on<CompletionsUpdated>(_onCompletionsUpdated);
 
     on<AddHabit>(_onAddHabit);
@@ -54,12 +61,40 @@ class HabitBloc extends Bloc<HabitEvent, HabitState> {
         });
   }
 
-  // Handle habit updates
-  void _onHabitsUpdated(HabitsUpdated event, Emitter<HabitState> emit) {
-    emit(state.copyWith(habits: event.habits, isLoading: false));
+  // ---------------------------------------------------------------------------
+  //  Handle habit updates + notification reconciliation
+  // ---------------------------------------------------------------------------
+  Future<void> _onHabitsUpdated(
+    HabitsUpdated event,
+    Emitter<HabitState> emit,
+  ) async {
+    final habits = event.habits;
+
+    // 🔔 RECONCILE LOCAL NOTIFICATIONS
+    for (final habit in habits) {
+      // Schedule if enabled but not scheduled locally
+      if (habit.reminderEnabled && habit.reminderTime != null) {
+        // Always reset when habit config changes
+        await notificationService.cancelNotification(habit.id.hashCode);
+        await notificationStore.markUnscheduled(habit.id);
+
+        await _scheduleFromHabit(habit);
+        await notificationStore.markScheduled(habit.id);
+      }
+
+      // Cancel if reminder turned off
+      if (!habit.reminderEnabled && notificationStore.isScheduled(habit.id)) {
+        await notificationService.cancelNotification(habit.id.hashCode);
+        await notificationStore.markUnscheduled(habit.id);
+      }
+    }
+
+    emit(state.copyWith(habits: habits, isLoading: false));
   }
 
-  // Handle completion updates
+  // ---------------------------------------------------------------------------
+  //  Handle completion updates
+  // ---------------------------------------------------------------------------
   void _onCompletionsUpdated(
     CompletionsUpdated event,
     Emitter<HabitState> emit,
@@ -92,6 +127,10 @@ class HabitBloc extends Bloc<HabitEvent, HabitState> {
     Emitter<HabitState> emit,
   ) async {
     await habitService.deleteHabit(event.userId, event.habitId);
+
+    // Clean up local notification state
+    await notificationService.cancelNotification(event.habitId.hashCode);
+    await notificationStore.clearHabit(event.habitId);
   }
 
   // ---------------------------------------------------------------------------
@@ -107,6 +146,50 @@ class HabitBloc extends Bloc<HabitEvent, HabitState> {
       event.date,
       event.completed,
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  //  Helper: Schedule notification from habit
+  // ---------------------------------------------------------------------------
+  Future<void> _scheduleFromHabit(HabitModel habit) async {
+    final parts = habit.reminderTime!.split(':');
+
+    final time = TimeOfDay(
+      hour: int.parse(parts[0]),
+      minute: int.parse(parts[1]),
+    );
+
+    if (habit.isDaily) {
+      await notificationService.scheduleDailyNotification(
+        id: habit.id.hashCode,
+        title: 'Habit Reminder',
+        body: habit.name,
+        time: time,
+      );
+    } else {
+      await _scheduleWeeklyHabit(habit);
+    }
+  }
+
+  Future<void> _scheduleWeeklyHabit(HabitModel habit) async {
+    final parts = habit.reminderTime!.split(':');
+    final hour = int.parse(parts[0]);
+    final minute = int.parse(parts[1]);
+
+    for (final day in habit.selectedDays) {
+      final dartWeekday = day == 0 ? DateTime.sunday : day;
+
+      final notificationId = '${habit.id}_$day'.hashCode; // unique per weekday
+
+      await notificationService.scheduleWeeklyNotification(
+        id: notificationId,
+        title: 'Habit Reminder',
+        body: habit.name,
+        weekday: dartWeekday,
+        hour: hour,
+        minute: minute,
+      );
+    }
   }
 
   @override
