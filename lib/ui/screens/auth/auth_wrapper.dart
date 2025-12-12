@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../app_router.dart';
 import '../../../bloc/auth/auth_bloc.dart';
 import '../../../bloc/auth/auth_state.dart';
+import '../../../bloc/habit/habit_bloc.dart';
+import '../../../bloc/habit/habit_event.dart';
 import '../../../core/theme/app_colors.dart';
 
 class AuthWrapper extends StatelessWidget {
@@ -16,10 +18,8 @@ class AuthWrapper extends StatelessWidget {
 
     return BlocConsumer<AuthBloc, AuthState>(
       listenWhen: (prev, curr) {
-        console.log(
-          "listenWhen triggered → prev.user=${prev.user?.uid}, curr.user=${curr.user?.uid}",
-        );
-        return prev.user != curr.user || prev.isLoading != curr.isLoading;
+        return prev.user?.uid != curr.user?.uid ||
+            prev.isLoading != curr.isLoading;
       },
 
       listener: (context, state) {
@@ -30,25 +30,25 @@ class AuthWrapper extends StatelessWidget {
         );
 
         if (state.user == null) {
-          console.log("➡ Navigating → LOGIN");
           Navigator.pushReplacementNamed(context, AppRoutes.login);
-        } else if (state.user!.isFirstTime) {
-          console.log("➡ Navigating → ONBOARDING");
+          return;
+        }
+
+        // ✅ AUTH CONFIRMED HERE
+        final uid = state.user!.uid;
+
+        // 🔥 LOAD HABITS ONCE, SAFELY
+        context.read<HabitBloc>().add(LoadHabits(uid));
+
+        if (state.user!.isFirstTime) {
           Navigator.pushReplacementNamed(context, AppRoutes.onboarding);
         } else {
-          console.log("➡ Navigating → DASHBOARD");
           Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
         }
       },
 
       builder: (context, state) {
-        console.log(
-          "AuthWrapper builder → isLoading=${state.isLoading}, "
-          "user=${state.user?.uid}",
-        );
-
         if (state.isLoading) {
-          console.log("Showing loading indicator...");
           return const Scaffold(
             body: Center(
               child: CircularProgressIndicator(color: AppColors.primary),
@@ -56,7 +56,6 @@ class AuthWrapper extends StatelessWidget {
           );
         }
 
-        console.log("Returning empty shell while listener handles navigation");
         return const Scaffold(body: Center(child: SizedBox.shrink()));
       },
     );

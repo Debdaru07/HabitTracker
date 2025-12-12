@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as console;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -35,30 +36,35 @@ class HabitBloc extends Bloc<HabitEvent, HabitState> {
   //  Load habits and completions (Firestore real-time listeners)
   // ---------------------------------------------------------------------------
   Future<void> _onLoadHabits(LoadHabits event, Emitter<HabitState> emit) async {
+    if (event.userId.isEmpty) {
+      return;
+    }
+
     emit(state.copyWith(isLoading: true));
 
-    // Cancel old listeners
     await _habitSubscription?.cancel();
     await _completionSubscription?.cancel();
 
-    // HABITS LISTENER
-    _habitSubscription = habitService.listenToHabits(event.userId).listen((
-      data,
-    ) {
-      final habits =
-          data.map((map) {
-            return HabitModel.fromMap(map['habit_id'], map);
-          }).toList();
+    try {
+      _habitSubscription = habitService.listenToHabits(event.userId).listen((
+        data,
+      ) {
+        final habits =
+            data.map((map) {
+              return HabitModel.fromMap(map['habit_id'], map);
+            }).toList();
 
-      add(HabitsUpdated(habits));
-    });
+        add(HabitsUpdated(habits));
+      });
 
-    // COMPLETIONS LISTENER
-    _completionSubscription = habitService
-        .listenToCompletions(event.userId)
-        .listen((data) {
-          add(CompletionsUpdated(data));
-        });
+      _completionSubscription = habitService
+          .listenToCompletions(event.userId)
+          .listen((data) {
+            add(CompletionsUpdated(data));
+          });
+    } catch (e, s) {
+      console.log('Firestore listener error: $e');
+    }
   }
 
   // ---------------------------------------------------------------------------

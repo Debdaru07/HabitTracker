@@ -33,12 +33,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _generateDateWindow();
 
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToToday());
-
-    Future.microtask(() async {
-      final user = await UserPrefs.loadUser();
-      final uid = user?.uid ?? '';
-      context.read<HabitBloc>().add(LoadHabits(uid));
-    });
   }
 
   void _generateDateWindow() {
