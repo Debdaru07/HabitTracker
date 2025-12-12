@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import 'firebase_options.dart';
 import 'app_router.dart';
@@ -12,10 +13,11 @@ import 'core/services/habit_service.dart';
 import 'bloc/auth/auth_bloc.dart';
 import 'bloc/auth/auth_event.dart';
 import 'bloc/habit/habit_bloc.dart';
-import 'ui/screens/auth/auth_wrapper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  await Hive.openBox('habit_notifications');
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const HabitTrackerApp());
 }

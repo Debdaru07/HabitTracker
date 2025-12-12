@@ -6,6 +6,7 @@ class HabitModel {
   final String name;
   final String? details;
   final int iconCodePoint;
+
   final bool isDaily;
   final List<int> selectedDays; // 0–6 (Sun–Sat)
   final String? dailyTime;
@@ -13,6 +14,9 @@ class HabitModel {
 
   final bool reminderEnabled;
   final String? reminderTime;
+
+  /// LOCAL ONLY — not stored in Firestore
+  final bool notificationScheduled;
 
   final DateTime createdAt;
 
@@ -29,17 +33,18 @@ class HabitModel {
     required this.reminderEnabled,
     required this.reminderTime,
     required this.createdAt,
+    this.notificationScheduled = false,
   });
 
   // ---------------------------------------------------------------------------
-  //  Factory: From Firestore
+  // From Firestore
   // ---------------------------------------------------------------------------
   factory HabitModel.fromMap(String id, Map<String, dynamic> map) {
     return HabitModel(
       id: id,
       userId: map['user_id'] ?? '',
       name: map['name'] ?? '',
-      details: map['details'] ?? '',
+      details: map['details'],
       iconCodePoint: map['icon'] ?? 0,
       isDaily: map['is_daily'] ?? true,
       selectedDays: List<int>.from(map['selected_days'] ?? []),
@@ -48,11 +53,14 @@ class HabitModel {
       reminderEnabled: map['reminder_enabled'] ?? false,
       reminderTime: map['reminder_time'],
       createdAt: (map['created_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
+
+      // Always false on fetch (device decides)
+      notificationScheduled: false,
     );
   }
 
   // ---------------------------------------------------------------------------
-  //  Serialize: To Firestore
+  // To Firestore
   // ---------------------------------------------------------------------------
   Map<String, dynamic> toMap() {
     return {
@@ -71,7 +79,7 @@ class HabitModel {
   }
 
   // ---------------------------------------------------------------------------
-  //  CopyWith (helpful for updating)
+  // CopyWith
   // ---------------------------------------------------------------------------
   HabitModel copyWith({
     String? name,
@@ -83,6 +91,7 @@ class HabitModel {
     String? selectiveTime,
     bool? reminderEnabled,
     String? reminderTime,
+    bool? notificationScheduled,
   }) {
     return HabitModel(
       id: id,
@@ -96,6 +105,8 @@ class HabitModel {
       selectiveTime: selectiveTime ?? this.selectiveTime,
       reminderEnabled: reminderEnabled ?? this.reminderEnabled,
       reminderTime: reminderTime ?? this.reminderTime,
+      notificationScheduled:
+          notificationScheduled ?? this.notificationScheduled,
       createdAt: createdAt,
     );
   }

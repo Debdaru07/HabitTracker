@@ -14,12 +14,37 @@ class NotificationService {
 
   Future<void> init() async {
     tzdata.initializeTimeZones();
+    tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
 
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const ios = DarwinInitializationSettings();
 
-    const settings = InitializationSettings(android: android);
+    const settings = InitializationSettings(android: android, iOS: ios);
 
     await _notifications.initialize(settings);
+
+    const androidChannel = AndroidNotificationChannel(
+      'habit_channel',
+      'Habit Reminders',
+      description: 'Notifications for habit reminders',
+      importance: Importance.max,
+    );
+
+    await _notifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
+        ?.createNotificationChannel(androidChannel);
+  }
+
+  Future<void> requestIOSPermission() async {
+    final ios =
+        _notifications
+            .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin
+            >();
+
+    await ios?.requestPermissions(alert: true, badge: true, sound: true);
   }
 
   Future<void> scheduleDailyNotification({
@@ -30,7 +55,7 @@ class NotificationService {
   }) async {
     final now = tz.TZDateTime.now(tz.local);
 
-    final scheduled = tz.TZDateTime(
+    var scheduled = tz.TZDateTime(
       tz.local,
       now.year,
       now.month,
@@ -39,22 +64,27 @@ class NotificationService {
       time.minute,
     );
 
+    if (scheduled.isBefore(now)) {
+      scheduled = scheduled.add(const Duration(days: 1));
+    }
+
     await _notifications.zonedSchedule(
       id,
       title,
       body,
-      scheduled.isBefore(now) ? scheduled.add(Duration(days: 1)) : scheduled,
+      scheduled,
       const NotificationDetails(
         android: AndroidNotificationDetails(
-          "habit_channel",
-          "Habit Reminders",
+          'habit_channel',
+          'Habit Reminders',
           importance: Importance.max,
           priority: Priority.high,
         ),
+        iOS: DarwinNotificationDetails(),
       ),
-      androidScheduleMode: AndroidScheduleMode.alarmClock,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.wallClockTime,
+          UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.time,
     );
   }
