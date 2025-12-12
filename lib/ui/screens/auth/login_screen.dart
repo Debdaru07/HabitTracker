@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../app_router.dart';
 import '../../../bloc/auth/auth_bloc.dart';
 import '../../../bloc/auth/auth_event.dart';
 import '../../../bloc/auth/auth_state.dart';
-import '../../../core/services/user_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/spacing.dart';
 
@@ -21,7 +19,9 @@ class LoginScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF6F8F6),
       body: SafeArea(
         child: BlocConsumer<AuthBloc, AuthState>(
-          listener: (context, state) async {
+          listenWhen: (prev, curr) => prev.error != curr.error,
+
+          listener: (context, state) {
             if (state.error != null) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -31,20 +31,8 @@ class LoginScreen extends StatelessWidget {
                 ),
               );
             }
-
-            if (!state.isLoading && state.user != null) {
-              final user = state.user!;
-              final userService = UserService();
-
-              final exists = await userService.hasOnboardingData(user.uid);
-
-              if (exists) {
-                Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
-              } else {
-                Navigator.pushReplacementNamed(context, AppRoutes.onboarding);
-              }
-            }
           },
+
           builder: (context, state) {
             return Center(
               child: SingleChildScrollView(

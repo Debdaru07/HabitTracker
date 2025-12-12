@@ -8,39 +8,27 @@ import '../../../bloc/auth/auth_state.dart';
 import '../../../bloc/habit/habit_bloc.dart';
 import '../../../bloc/habit/habit_event.dart';
 import '../../../core/theme/app_colors.dart';
+import 'login_screen.dart';
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
 
   @override
   Widget build(BuildContext context) {
-    console.log("AuthWrapper build() called — waiting for AuthState updates");
+    console.log("AuthWrapper build()");
 
     return BlocConsumer<AuthBloc, AuthState>(
-      listenWhen: (prev, curr) {
-        return prev.user?.uid != curr.user?.uid ||
-            prev.isLoading != curr.isLoading;
-      },
+      listenWhen:
+          (prev, curr) => prev.user?.uid != curr.user?.uid && curr.user != null,
 
       listener: (context, state) {
-        console.log(
-          "AuthWrapper listener → user=${state.user?.uid}, "
-          "isFirstTime=${state.user?.isFirstTime}, "
-          "isLoading=${state.isLoading}",
-        );
+        final user = state.user!;
+        console.log("Auth confirmed → ${user.uid}");
 
-        if (state.user == null) {
-          Navigator.pushReplacementNamed(context, AppRoutes.login);
-          return;
-        }
+        // Load habits ONCE
+        context.read<HabitBloc>().add(LoadHabits(user.uid));
 
-        // ✅ AUTH CONFIRMED HERE
-        final uid = state.user!.uid;
-
-        // 🔥 LOAD HABITS ONCE, SAFELY
-        context.read<HabitBloc>().add(LoadHabits(uid));
-
-        if (state.user!.isFirstTime) {
+        if (user.isFirstTime) {
           Navigator.pushReplacementNamed(context, AppRoutes.onboarding);
         } else {
           Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
@@ -48,15 +36,17 @@ class AuthWrapper extends StatelessWidget {
       },
 
       builder: (context, state) {
-        if (state.isLoading) {
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            ),
-          );
+        // 🔴 NOT LOGGED IN → SHOW LOGIN
+        if (!state.isLoading && state.user == null) {
+          return const LoginScreen();
         }
 
-        return const Scaffold(body: Center(child: SizedBox.shrink()));
+        // ⏳ LOADING
+        return const Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
+          ),
+        );
       },
     );
   }

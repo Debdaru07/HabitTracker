@@ -17,18 +17,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     : super(const AuthState()) {
     console.log("AuthBloc initialized");
 
-    // Register event handlers first
     on<AuthCheckRequested>(_onAuthCheck);
     on<SignInWithGoogleRequested>(_onGoogleSignIn);
     on<SignOutRequested>(_onSignOut);
     on<UpdateUserRequested>(_onUserUpdate);
 
-    // Listen to Firebase user changes
-    Future.microtask(() {
-      authService.userStream.listen((firebaseUser) async {
-        console.log("Firebase AuthStream update → ${firebaseUser?.uid}");
-        add(AuthCheckRequested());
-      });
+    // 🔥 KEEP this, but do NOT cause loops
+    authService.userStream.listen((firebaseUser) {
+      console.log("Firebase AuthStream update → ${firebaseUser?.uid}");
+      add(AuthCheckRequested());
     });
   }
 
@@ -47,11 +44,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     if (savedUser != null) {
       console.log("User found in SharedPrefs → ${savedUser.uid}");
-      await notificationStore.init();
-      emit(state.copyWith(user: savedUser, isLoading: false));
+
+      // ❌ REMOVED: notificationStore.init() (already done in main)
+
+      emit(state.copyWith(user: savedUser, isLoading: false, error: null));
     } else {
       console.log("No user found → Redirect to Login");
-      emit(state.copyWith(user: null, isLoading: false));
+
+      emit(state.copyWith(user: null, isLoading: false, error: null));
     }
   }
 
@@ -78,10 +78,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     await UserPrefs.saveUser(user);
 
-    emit(state.copyWith(user: user, isLoading: false));
+    // ✅ Emit final state ONCE
+    emit(state.copyWith(user: user, isLoading: false, error: null));
 
-    // Trigger navigation logic in AuthWrapper
-    add(AuthCheckRequested());
+    // ❌ REMOVED: add(AuthCheckRequested())
+    // Firebase authStream will handle it
   }
 
   // -------------------------------------------------------------
@@ -101,7 +102,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthState(user: null, isLoading: false));
   }
 
-  // User Onboarding
+  // -------------------------------------------------------------
+  // USER UPDATE (ONBOARDING)
+  // -------------------------------------------------------------
   Future<void> _onUserUpdate(
     UpdateUserRequested event,
     Emitter<AuthState> emit,
@@ -110,12 +113,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     final updated = event.updatedUser;
 
-    // Save in SharedPreferences
     await UserPrefs.saveUser(updated);
 
     console.log("User updated → ${updated.toJson()}");
 
-    // Emit updated state
-    emit(state.copyWith(user: updated));
+    emit(state.copyWith(user: updated, error: null));
   }
 }

@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:developer' as console;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -36,35 +34,46 @@ class HabitBloc extends Bloc<HabitEvent, HabitState> {
   //  Load habits and completions (Firestore real-time listeners)
   // ---------------------------------------------------------------------------
   Future<void> _onLoadHabits(LoadHabits event, Emitter<HabitState> emit) async {
+    // 🛑 SAFETY GUARD #1: invalid user
     if (event.userId.isEmpty) {
+      return;
+    }
+
+    // 🛑 SAFETY GUARD #2: already listening
+    if (_habitSubscription != null || _completionSubscription != null) {
       return;
     }
 
     emit(state.copyWith(isLoading: true));
 
-    await _habitSubscription?.cancel();
-    await _completionSubscription?.cancel();
+    // HABITS LISTENER
+    _habitSubscription = habitService
+        .listenToHabits(event.userId)
+        .listen(
+          (data) {
+            final habits =
+                data.map((map) {
+                  return HabitModel.fromMap(map['habit_id'], map);
+                }).toList();
+            add(HabitsUpdated(habits));
+          },
+          onError: (e) {
+            debugPrint('Habit stream error: $e');
+            emit(state.copyWith(isLoading: false));
+          },
+        );
 
-    try {
-      _habitSubscription = habitService.listenToHabits(event.userId).listen((
-        data,
-      ) {
-        final habits =
-            data.map((map) {
-              return HabitModel.fromMap(map['habit_id'], map);
-            }).toList();
-
-        add(HabitsUpdated(habits));
-      });
-
-      _completionSubscription = habitService
-          .listenToCompletions(event.userId)
-          .listen((data) {
+    // COMPLETIONS LISTENER
+    _completionSubscription = habitService
+        .listenToCompletions(event.userId)
+        .listen(
+          (data) {
             add(CompletionsUpdated(data));
-          });
-    } catch (e, s) {
-      console.log('Firestore listener error: $e');
-    }
+          },
+          onError: (e) {
+            debugPrint('Completion stream error: $e');
+          },
+        );
   }
 
   // ---------------------------------------------------------------------------
@@ -158,7 +167,17 @@ class HabitBloc extends Bloc<HabitEvent, HabitState> {
   //  Helper: Schedule notification from habit
   // ---------------------------------------------------------------------------
   Future<void> _scheduleFromHabit(HabitModel habit) async {
-    final parts = habit.reminderTime!.split(':');
+    final timeString = habit.reminderTime;
+
+    // 🛑 SAFETY GUARD
+    if (timeString == null || !timeString.contains(':')) {
+      debugPrint(
+        'Skipping notification for habit ${habit.id} — invalid time: $timeString',
+      );
+      return;
+    }
+
+    final parts = timeString.split(':');
 
     final time = TimeOfDay(
       hour: int.parse(parts[0]),
@@ -178,7 +197,17 @@ class HabitBloc extends Bloc<HabitEvent, HabitState> {
   }
 
   Future<void> _scheduleWeeklyHabit(HabitModel habit) async {
-    final parts = habit.reminderTime!.split(':');
+    final timeString = habit.reminderTime;
+
+    // 🛑 SAFETY GUARD
+    if (timeString == null || !timeString.contains(':')) {
+      debugPrint(
+        'Skipping notification for habit ${habit.id} — invalid time: $timeString',
+      );
+      return;
+    }
+
+    final parts = timeString.split(':');
     final hour = int.parse(parts[0]);
     final minute = int.parse(parts[1]);
 
